@@ -1,0 +1,148 @@
+/**
+ * Các key cài đặt hệ thống. Trang admin chỉ hiển thị và cho cấu hình các key này
+ * (không có key tự do). Tên + mô tả được dịch ở frontend theo `settings:keys.<name>`.
+ */
+export type SettingValueType = 'string' | 'number' | 'boolean' | 'text' | 'email' | 'url';
+
+export const SETTING_GROUPS = [
+  'general',
+  'security',
+  'mail',
+  'sendify',
+  'google',
+  'captcha',
+] as const;
+export type SettingGroup = (typeof SETTING_GROUPS)[number];
+
+export interface SettingDefinition {
+  name: string;
+  group: SettingGroup;
+  type: SettingValueType;
+  defaultValue: string;
+  /** Không trả giá trị về client, không export trừ khi chọn "kèm bí mật" */
+  isSecret?: boolean;
+  /** Frontend đọc được qua GET /settings/public mà không cần đăng nhập */
+  isPublic?: boolean;
+  example?: string;
+}
+
+export const SETTING_DEFINITIONS = [
+  { name: 'site_name', group: 'general', type: 'string', defaultValue: 'Base Web', isPublic: true },
+  {
+    name: 'allow_registration',
+    group: 'general',
+    type: 'boolean',
+    defaultValue: 'true',
+    isPublic: true,
+  },
+  { name: 'default_role', group: 'general', type: 'string', defaultValue: 'User', example: 'User' },
+
+  {
+    name: 'require_email_verification',
+    group: 'security',
+    type: 'boolean',
+    defaultValue: 'false',
+    isPublic: true,
+  },
+  { name: 'require_2fa_admin', group: 'security', type: 'boolean', defaultValue: 'false' },
+  /** Phương thức 2FA được phép bật, phân tách bằng dấu phẩy: totp, email, passkey */
+  {
+    name: 'two_factor_methods',
+    group: 'security',
+    type: 'string',
+    defaultValue: 'totp,email,passkey',
+    example: 'totp,email,passkey',
+  },
+  /** Cho phép email là phương thức 2FA duy nhất của tài khoản quản trị (mặc định: phải có TOTP hoặc passkey) */
+  { name: 'admin_2fa_allow_email', group: 'security', type: 'boolean', defaultValue: 'false' },
+  { name: 'login_geoip_enabled', group: 'security', type: 'boolean', defaultValue: 'true' },
+
+  { name: 'smtp_host', group: 'mail', type: 'string', defaultValue: '', example: 'smtp.gmail.com' },
+  { name: 'smtp_port', group: 'mail', type: 'number', defaultValue: '587' },
+  { name: 'smtp_secure', group: 'mail', type: 'boolean', defaultValue: 'false' },
+  { name: 'smtp_user', group: 'mail', type: 'string', defaultValue: '' },
+  { name: 'smtp_password', group: 'mail', type: 'string', defaultValue: '', isSecret: true },
+  {
+    name: 'mail_from',
+    group: 'mail',
+    type: 'string',
+    defaultValue: '',
+    example: '"Base Web" <no-reply@example.com>',
+  },
+
+  { name: 'sendify_api_key', group: 'sendify', type: 'string', defaultValue: '', isSecret: true },
+  {
+    name: 'sendify_from',
+    group: 'sendify',
+    type: 'string',
+    defaultValue: '',
+    example: '"Base Web" <no-reply@example.com>',
+  },
+  {
+    name: 'sendify_template_verify_email',
+    group: 'sendify',
+    type: 'string',
+    defaultValue: '',
+    example: 'VERIFY_EMAIL',
+  },
+  {
+    name: 'sendify_template_two_factor_code',
+    group: 'sendify',
+    type: 'string',
+    defaultValue: '',
+    example: 'TWO_FACTOR_CODE',
+  },
+  {
+    name: 'sendify_template_reset_password',
+    group: 'sendify',
+    type: 'string',
+    defaultValue: '',
+    example: 'RESET_PASSWORD',
+  },
+
+  {
+    name: 'google_client_id',
+    group: 'google',
+    type: 'string',
+    defaultValue: '',
+    example: '1234567890-abc.apps.googleusercontent.com',
+  },
+  {
+    name: 'google_client_secret',
+    group: 'google',
+    type: 'string',
+    defaultValue: '',
+    isSecret: true,
+  },
+
+  {
+    name: 'turnstile_site_key',
+    group: 'captcha',
+    type: 'string',
+    defaultValue: '',
+    isPublic: true,
+  },
+  {
+    name: 'turnstile_secret_key',
+    group: 'captcha',
+    type: 'string',
+    defaultValue: '',
+    isSecret: true,
+  },
+] as const satisfies readonly SettingDefinition[];
+
+export type SettingName = (typeof SETTING_DEFINITIONS)[number]['name'];
+
+export function getSettingDefinition(name: string): SettingDefinition | undefined {
+  return (SETTING_DEFINITIONS as readonly SettingDefinition[]).find((d) => d.name === name);
+}
+
+/** Giá trị cài đặt công khai, đã ép kiểu */
+export interface PublicSettings {
+  site_name: string;
+  allow_registration: boolean;
+  require_email_verification: boolean;
+  turnstile_site_key: string;
+  /** true khi đã cấu hình Google Client ID + Secret */
+  google_login_enabled: boolean;
+}

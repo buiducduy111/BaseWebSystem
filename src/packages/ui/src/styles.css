@@ -1,0 +1,752 @@
+/* Style dùng chung cho các frontend. Màu lấy từ CSS variable của antd (--ant-*). */
+:root {
+  --b-bg: #f5f6f8;
+  --b-border: #e8eaef;
+  --b-muted: #6b7280;
+  --b-brand-from: #2f45b5;
+  --b-brand-to: #4459c1;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--b-bg);
+}
+
+/* Tiện ích */
+.b-mb-16 {
+  margin-bottom: 16px;
+}
+.b-mt-8 {
+  margin-top: 8px;
+}
+.b-mt-16 {
+  margin-top: 16px;
+}
+.b-text-center {
+  text-align: center;
+}
+.b-hint {
+  display: block;
+  font-size: 12px;
+  margin-top: 6px;
+}
+.b-fullpage-center {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+}
+.b-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ---------- Auth layout ---------- */
+.b-auth {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  background: #fff;
+}
+.b-auth__brand {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 48px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 15% 20%, rgb(255 255 255 / 0.12), transparent 40%),
+    radial-gradient(circle at 85% 80%, rgb(255 255 255 / 0.1), transparent 45%),
+    linear-gradient(135deg, var(--b-brand-from), var(--b-brand-to) 55%, #3a2f9e);
+}
+.b-auth__logo {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+.b-auth__brand-title {
+  margin: 0 0 12px;
+  font-size: 34px;
+  line-height: 1.25;
+  font-weight: 700;
+  max-width: 440px;
+}
+.b-auth__brand-subtitle {
+  margin: 0;
+  font-size: 16px;
+  opacity: 0.85;
+  max-width: 420px;
+}
+.b-auth__copyright {
+  font-size: 13px;
+  opacity: 0.7;
+}
+.b-auth__main {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px 32px;
+}
+.b-auth__lang {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+.b-auth__form {
+  width: 100%;
+  max-width: 420px;
+}
+.b-auth__title {
+  margin-bottom: 4px !important;
+}
+.b-auth__footer {
+  margin-top: 24px;
+  text-align: center;
+}
+.b-auth-links {
+  margin-top: 16px;
+  text-align: center;
+}
+.b-label-full .ant-form-item-label > label {
+  width: 100%;
+}
+.b-label-row {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+}
+.b-2fa-icon {
+  font-size: 40px;
+  color: var(--ant-color-primary);
+  text-align: center;
+  margin-bottom: 8px;
+}
+.b-otp-item {
+  display: flex;
+  justify-content: center;
+}
+.b-backup-input {
+  text-align: center;
+  letter-spacing: 2px;
+  font-family: ui-monospace, monospace;
+}
+
+@media (max-width: 900px) {
+  .b-auth {
+    grid-template-columns: 1fr;
+  }
+  .b-auth__brand {
+    display: none;
+  }
+}
+
+/* ---------- 2FA ---------- */
+.b-2fa-setup__steps {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.b-2fa-setup__qr {
+  margin: 12px 0;
+  padding: 8px;
+  display: block;
+  width: fit-content;
+  border: 1px solid var(--b-border);
+  border-radius: 12px;
+  background: #fff;
+}
+.b-2fa-setup__qr img {
+  display: block;
+}
+.b-2fa-setup__secret code {
+  font-size: 13px;
+  word-break: break-all;
+}
+.b-2fa-setup__form {
+  margin-top: 8px;
+}
+.b-2fa-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.b-2fa-status__icon,
+.b-2fa-status__icon--on {
+  font-size: 28px;
+  color: var(--b-muted);
+}
+.b-2fa-status__icon--on {
+  color: var(--ant-color-success);
+}
+.b-2fa-status__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+.b-backup-codes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 16px;
+  border-radius: 8px;
+  background: var(--b-bg);
+}
+.b-backup-codes code {
+  font-family: ui-monospace, monospace;
+  font-size: 15px;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+/* ---------- App shell (sidebar theo giao diện gpm_crm) ---------- */
+.b-shell {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+.b-shell__sider-wrap {
+  flex-shrink: 0;
+  width: 260px;
+  transition: width 0.3s;
+}
+.b-shell__sider-wrap--collapsed {
+  width: 55px;
+}
+.b-shell__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.b-shell__header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 64px;
+  padding: 0 16px;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+}
+.b-shell__header-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.b-shell__user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 220px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+.b-shell__user:hover {
+  background: #f3f4f6;
+}
+.b-shell__user-name {
+  max-width: 160px;
+}
+.b-shell__content {
+  flex: 1;
+  overflow: auto;
+  padding: 24px;
+}
+.b-shell__content > * {
+  max-width: 1440px;
+  margin-inline: auto;
+}
+
+/* Mobile: sidebar trượt ra từ trái, có lớp phủ tối */
+.b-shell__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgb(0 0 0 / 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.b-shell__overlay--open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.b-shell__drawer {
+  position: fixed;
+  inset-block: 0;
+  left: 0;
+  z-index: 50;
+  width: 260px;
+  max-width: 80vw;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease-in-out;
+}
+.b-shell__drawer--open {
+  transform: translateX(0);
+}
+
+@media (max-width: 767px) {
+  .b-shell__content {
+    padding: 12px;
+  }
+}
+
+/* Sidebar */
+.b-sider {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-right: 1px solid #e5e7eb;
+}
+.b-sider__brand {
+  flex-shrink: 0;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 17px;
+  font-weight: 700;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.b-sider__nav {
+  flex: 1;
+  overflow-y: auto;
+}
+.b-sider__nav::-webkit-scrollbar {
+  width: 6px;
+}
+.b-sider__nav::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 3px;
+}
+.b-nav-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
+}
+.b-nav-item__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.b-nav-item__icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Biến thể admin */
+.b-sider--admin .b-sider__nav {
+  padding: 16px;
+}
+.b-sider--admin.b-sider--collapsed .b-sider__nav {
+  padding: 8px 4px;
+}
+.b-sider--admin .b-nav-group--next {
+  margin-top: 16px;
+}
+.b-sider--admin.b-sider--collapsed .b-nav-group--next {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e5e7eb;
+}
+.b-sider--admin .b-nav-group__title {
+  padding: 0 12px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+}
+.b-sider--admin .b-nav-item {
+  gap: 12px;
+  padding: 8px 12px;
+  margin-bottom: 4px;
+  border-radius: 6px;
+  color: #374151;
+  font-weight: 500;
+}
+.b-sider--admin .b-nav-item:hover {
+  background: #f3f4f6;
+}
+.b-sider--admin .b-nav-item--active,
+.b-sider--admin .b-nav-item--active:hover {
+  background: #eef0fb;
+  color: #37479c;
+}
+.b-sider--admin.b-sider--collapsed .b-nav-item {
+  justify-content: center;
+  padding: 12px;
+}
+
+/* Biến thể user */
+.b-sider--user .b-sider__nav {
+  padding: 12px;
+}
+.b-sider--user.b-sider--collapsed .b-sider__nav {
+  padding: 8px;
+}
+.b-sider--user .b-nav-group--next {
+  margin-top: 20px;
+}
+.b-sider--user.b-sider--collapsed .b-nav-group--next {
+  padding-top: 8px;
+  border-top: 1px solid #e5e7eb;
+}
+.b-sider--user .b-nav-group__title {
+  padding: 0 12px;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #94a3b8;
+}
+.b-sider--user .b-nav-group__items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.b-sider--user .b-nav-item {
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+}
+.b-sider--user .b-nav-item__icon {
+  font-size: 18px;
+  color: #64748b;
+}
+.b-sider--user .b-nav-item:hover {
+  background: #f8fafc;
+}
+.b-sider--user .b-nav-item--active,
+.b-sider--user .b-nav-item--active:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  font-weight: 600;
+}
+.b-sider--user .b-nav-item--active .b-nav-item__icon {
+  color: #0f172a;
+}
+.b-sider--user.b-sider--collapsed .b-nav-item {
+  justify-content: center;
+  padding: 10px;
+}
+
+/* ---------- Page header ---------- */
+.b-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+.b-page-header__main {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  min-width: 0;
+}
+.b-page-header__icon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  font-size: 20px;
+  color: var(--ant-color-primary);
+  background: color-mix(in srgb, var(--ant-color-primary) 10%, transparent);
+}
+.b-page-header__title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.b-page-header__title {
+  margin: 0 !important;
+}
+.b-page-header__count {
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #eef0f4;
+  color: var(--b-muted);
+  font-size: 13px;
+  line-height: 22px;
+  font-variant-numeric: tabular-nums;
+}
+.b-page-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ---------- Settings section (2 cột) ---------- */
+.b-settings-section {
+  display: grid;
+  grid-template-columns: minmax(0, 280px) minmax(0, 1fr);
+  gap: 24px;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--b-border);
+}
+.b-settings-section:last-child {
+  border-bottom: none;
+}
+.b-settings-section__title {
+  margin: 0 0 4px !important;
+}
+.b-settings-section__card {
+  max-width: 640px;
+}
+
+@media (max-width: 900px) {
+  .b-settings-section {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+/* ---------- Profile ---------- */
+.b-profile-avatar {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+.b-profile-avatar__body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.b-profile-avatar__name {
+  font-size: 16px;
+}
+.b-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 16px;
+}
+.b-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 600px) {
+  .b-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .b-profile-avatar {
+    flex-direction: column;
+  }
+}
+
+/* ---------- Bảng ---------- */
+.b-user-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.b-user-cell__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.35;
+}
+.b-user-cell__email {
+  font-size: 12px;
+}
+.b-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.b-toolbar__search {
+  width: 280px;
+  max-width: 100%;
+}
+
+/* ---------- Xác minh email / Google ---------- */
+.b-verified-icon {
+  color: #16a34a;
+  font-size: 16px;
+}
+.b-email-verify__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.b-email-verify__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.b-px-0 {
+  padding-inline: 0 !important;
+}
+.b-auth-divider {
+  margin: 20px 0 !important;
+  color: var(--b-muted) !important;
+  font-size: 13px !important;
+}
+
+/* ---------- Lịch sử đăng nhập ---------- */
+.b-login-history__intro {
+  display: block;
+  margin-bottom: 16px;
+}
+.b-login-history__device {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  line-height: 1.35;
+}
+.b-login-history__device-icon {
+  font-size: 18px;
+  color: var(--b-muted);
+  flex-shrink: 0;
+}
+.b-login-history__sub {
+  font-size: 12px;
+}
+.b-login-history__muted-icon {
+  color: var(--b-muted);
+}
+.b-login-history__ip {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+}
+
+/* ----- 2FA đa phương thức ----- */
+.b-2fa-status {
+  flex-wrap: wrap;
+}
+.b-2fa-default {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.b-2fa-methods {
+  margin-top: 16px;
+  border: 1px solid var(--b-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.b-2fa-method + .b-2fa-method {
+  border-top: 1px solid var(--b-border);
+}
+.b-2fa-method {
+  padding: 16px;
+}
+.b-2fa-method__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.b-2fa-method__icon {
+  font-size: 22px;
+  color: var(--b-muted);
+  width: 28px;
+  text-align: center;
+  padding-top: 2px;
+}
+.b-2fa-method__icon--on {
+  color: var(--ant-color-success);
+}
+.b-2fa-method__body {
+  flex: 1 1 240px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.b-2fa-method__desc {
+  font-size: 13px;
+}
+.b-2fa-method__actions {
+  flex: 0 0 auto;
+}
+.b-2fa-passkeys {
+  list-style: none;
+  margin: 12px 0 0 40px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.b-2fa-passkeys li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--ant-color-fill-quaternary);
+}
+.b-2fa-passkeys__info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.b-2fa-passkeys__meta {
+  font-size: 12px;
+}
+.b-2fa-others {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+@media (max-width: 576px) {
+  .b-2fa-default {
+    margin-left: 0;
+    width: 100%;
+  }
+  .b-2fa-passkeys {
+    margin-left: 0;
+  }
+}
