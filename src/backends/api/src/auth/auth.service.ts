@@ -78,7 +78,10 @@ export class AuthService {
 
     const [user] = await this.db.select().from(users).where(eq(users.email, normalizedEmail));
     const valid = await verifyPassword(password, user?.passwordHash ?? (await DUMMY_HASH));
-    if (!user || !valid) throw unauthorized('auth.invalidCredentials');
+    // Vẫn so sánh với DUMMY_HASH để giữ thời gian phản hồi đồng đều, nhưng tài khoản chưa có
+    // mật khẩu (tạo qua Google) phải luôn bị từ chối — nếu không, plaintext của hash giả sẽ
+    // thành mật khẩu hợp lệ của mọi tài khoản như vậy.
+    if (!user?.passwordHash || !valid) throw unauthorized('auth.invalidCredentials');
 
     const principal = await this.loadActivePrincipal(user.id, app);
 

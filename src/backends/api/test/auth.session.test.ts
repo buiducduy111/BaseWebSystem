@@ -90,6 +90,23 @@ describe('Auth: đăng nhập & phiên', () => {
       fail(await new Client(t.server).login(email, 'anything1'), 401, 'auth.invalidCredentials');
     });
 
+    it('mật khẩu của hash giả (cân bằng thời gian) không mở được tài khoản chưa có mật khẩu', async () => {
+      // Chuỗi phải khớp plaintext của DUMMY_HASH trong auth.service.ts
+      const dummyPassword = 'dummy-password-for-timing';
+      const user = await createUser(t.db, { password: null });
+      fail(
+        await new Client(t.server).login(user.email, dummyPassword),
+        401,
+        'auth.invalidCredentials',
+      );
+      const admin = await createUser(t.db, { password: null, admin: true });
+      fail(
+        await new Client(t.server, 'admin').login(admin.email, dummyPassword),
+        401,
+        'auth.invalidCredentials',
+      );
+    });
+
     it('tài khoản bị khoá → 403', async () => {
       const { email, password } = await createUser(t.db, { isActive: false });
       fail(await new Client(t.server).login(email, password), 403, 'auth.accountLocked');

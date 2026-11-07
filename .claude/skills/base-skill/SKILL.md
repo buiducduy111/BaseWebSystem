@@ -1,6 +1,6 @@
 ---
 name: base-skill
-description: Quy ước bắt buộc khi viết code trong monorepo BaseWebSystem (NestJS API + 2 app React/Vite/antd + Drizzle/PostgreSQL). Dùng skill này cho MỌI thay đổi code trong repo — thêm API/route/controller/module, thêm hoặc sửa permission/role, thêm key cài đặt hệ thống (setting), thêm trang admin/user, sửa schema DB, i18n — và trước khi báo hoàn thành (phải chạy lint + typecheck, rồi hỏi có cập nhật docs/README không).
+description: Quy ước bắt buộc khi viết code trong monorepo BaseWebSystem (NestJS API + 2 app React/Vite/antd + Drizzle/PostgreSQL). Dùng skill này cho MỌI thay đổi code trong repo — thêm API/route/controller/module, thêm hoặc sửa permission/role, thêm key cài đặt hệ thống (setting), thêm trang admin/user, sửa schema DB, i18n — và trước khi báo hoàn thành (phải chạy lint + typecheck, rồi hỏi có cập nhật docs/README không; có testcase mới thì hỏi cập nhật docs/TEST-CASES.md).
 ---
 
 # BaseWebSystem — quy ước làm việc
@@ -102,6 +102,9 @@ Khi hỏi, nêu cụ thể **file nào** và **mục nào** có thể cần sử
 | Setting: key/nhóm/kiểu mới, đổi cách sinh form | `docs/settings.md` |
 | Permission/role, guard, decorator, quyền mới của module | `docs/permissions.md`, `docs/permission-sync.md` |
 | 2FA, passkey, TOTP, email OTP | `docs/two-factor.md` |
+| Thêm / sửa / xoá testcase | `docs/TEST-CASES.md` (xem đoạn dưới) |
 | Quy ước code, checklist làm việc thay đổi | Skill này (`.claude/skills/base-skill/*.md`) |
+
+**Testcase mới → hỏi riêng về `docs/TEST-CASES.md`.** Nếu thay đổi có thêm testcase mới (file test mới, hoặc `it(...)` / `test(...)` / `describe(...)` mới trong `src/backends/api/test/**`, `src/packages/server-kit/test/**` hay bất kỳ file `*.test.ts` nào), **luôn hỏi** người dùng có muốn cập nhật `docs/TEST-CASES.md` không. Khi hỏi, liệt kê các testcase mới (file + tên case + kịch bản kiểm tra ngắn gọn). File này chưa tồn tại thì hỏi có tạo mới không. Testcase chỉ bị sửa/xoá thì cũng nêu ra để người dùng quyết định có cần chỉnh file này không.
 
 Nếu xác định không có tài liệu nào bị ảnh hưởng, vẫn nói rõ điều đó và hỏi người dùng xác nhận. Khi được đồng ý sửa tài liệu: viết tiếng Việt có dấu, giữ văn phong và cấu trúc mục hiện có, cập nhật cả liên kết chéo giữa các file nếu đổi tiêu đề mục.
