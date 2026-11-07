@@ -1,30 +1,46 @@
 import { DeleteOutlined } from '@ant-design/icons';
-import type { SettingItemDto } from '@base/shared';
-import { getErrorMessage, useApi, useAuth } from '@base/ui';
-import { useQuery } from '@tanstack/react-query';
+import type { SettingGroupDto, SettingItemDto } from '@base/shared';
+import { getErrorMessage, useApi } from '@base/ui';
 import { App, Button, Form, Input, InputNumber, Select, Switch, Tag, Typography } from 'antd';
 import { useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
-type FormValue = string | number | boolean | null | undefined;
+type FormValue = string | number | boolean | string[] | null | undefined;
+
+/** multiselect lưu DB dạng "a,b,c" */
+const splitList = (value: string) =>
+  value
+    .split(',')
+    .map((v) => v.trim())
+    .filter(Boolean);
 
 /** Giá trị từ server (chuỗi) → giá trị cho ô nhập */
 function toFormValue(item: SettingItemDto): FormValue {
   if (item.isSecret) return '';
   const value = item.value ?? '';
-  if (item.type === 'boolean') return value === 'true';
-  if (item.type === 'number') return value === '' ? null : Number(value);
-  return value;
+  switch (item.type) {
+    case 'boolean':
+      return value === 'true';
+    case 'number':
+      return value === '' ? null : Number(value);
+    case 'multiselect':
+      return splitList(value);
+    case 'select':
+      return value === '' ? undefined : value;
+    default:
+      return value;
+  }
 }
 
 /** Giá trị ô nhập → chuỗi lưu DB */
 function toSettingValue(item: SettingItemDto, value: FormValue): string {
   if (item.type === 'boolean') return value ? 'true' : 'false';
+  if (Array.isArray(value)) return value.join(',');
   if (value === null || value === undefined) return '';
   return String(value);
 }
 
-/** Form 1 nhóm cài đặt; chỉ gửi lên các key có thay đổi */
+/** Form 1 nhóm cài đặt, sinh ô nhập theo `type` / `options` server trả; chỉ gửi các key có thay đổi */
 export function SettingsGroupForm({
   items,
   readOnly,
@@ -34,20 +50,13 @@ export function SettingsGroupForm({
   items: SettingItemDto[];
   readOnly: boolean;
   hint?: ReactNode;
-  onSaved: (items: SettingItemDto[]) => void;
+  onSaved: (groups: SettingGroupDto[]) => void;
 }) {
   const { t } = useTranslation(['settings', 'common']);
   const api = useApi();
-  const { can } = useAuth();
   const { message, modal } = App.useApp();
   const [form] = Form.useForm<Record<string, FormValue>>();
   const [saving, setSaving] = useState(false);
-  const needsRoles = items.some((i) => i.name === 'default_role');
-  const roles = useQuery({
-    queryKey: ['roles', 'options'],
-    queryFn: () => api.roles.list({ pageSize: 100, sortBy: 'name', sortOrder: 'asc' }),
-    enabled: needsRoles && (can('roles.list') || can('users.list')),
-  });
 
   useEffect(() => {
     form.setFieldsValue(Object.fromEntries(items.map((i) => [i.name, toFormValue(i)])));
@@ -83,7 +92,7 @@ export function SettingsGroupForm({
   const clearSecret = (item: SettingItemDto) =>
     modal.confirm({
       title: t('common:confirm'),
-      content: t('clearSecretConfirm', { name: t(`keys.${item.name}.label`) }),
+      content: t('clearSecretConfirm', { name: item.label }),
       okButtonProps: { danger: true },
       onOk: async () => {
         try {
@@ -96,8 +105,7 @@ export function SettingsGroupForm({
     });
 
   function renderInput(item: SettingItemDto) {
-    if (item.type === 'boolean') return <Switch disabled={readOnly} />;
-    if (item.type === 'number') return <InputNumber disabled={readOnly} style={{ width: '100%' }} />;
+    const placeholder = item.placeholder ?? undefined;
     if (item.isSecret) {
       return (
         <Input.Password
@@ -107,17 +115,28 @@ export function SettingsGroupForm({
         />
       );
     }
-    if (item.name === 'default_role' && roles.data) {
-      return (
-        <Select
-          disabled={readOnly}
-          showSearch={{ optionFilterProp: 'label' }}
-          options={roles.data.items.map((r) => ({ value: r.name, label: r.name }))}
-        />
-      );
+    switch (item.type) {
+      case 'boolean':
+        return <Switch disabled={readOnly} />;
+      case 'number':
+        return <InputNumber disabled={readOnly} placeholder={placeholder} style={{ width: '100%' }} />;
+      case 'select':
+      case 'multiselect':
+        return (
+          <Select
+            disabled={readOnly}
+            mode={item.type === 'multiselect' ? 'multiple' : undefined}
+            allowClear
+            placeholder={placeholder}
+            showSearch={{ optionFilterProp: 'label' }}
+            options={item.options ?? []}
+          />
+        );
+      case 'text':
+        return <Input.TextArea rows={3} disabled={readOnly} placeholder={placeholder} />;
+      default:
+        return <Input disabled={readOnly} placeholder={placeholder} />;
     }
-    if (item.type === 'text') return <Input.TextArea rows={3} disabled={readOnly} />;
-    return <Input disabled={readOnly} placeholder={item.example} />;
   }
 
   return (
@@ -127,10 +146,10 @@ export function SettingsGroupForm({
         <Form.Item
           key={item.name}
           name={item.name}
-          valuePropName={item.type === 'boolean' ? 'checked' : 'value'}
+          valuePropName={item.type === 'boolean' && !item.isSecret ? 'checked' : 'value'}
           label={
             <span className="settings-label">
-              <span>{t(`keys.${item.name}.label`)}</span>
+              <span>{item.label}</span>
               <Typography.Text type="secondary" code className="settings-label__key">
                 {item.name}
               </Typography.Text>
@@ -139,21 +158,23 @@ export function SettingsGroupForm({
             </span>
           }
           extra={
-            <span className="settings-extra">
-              {t(`keys.${item.name}.description`)}
-              {item.isSecret && item.configured && !readOnly && (
-                <Button
-                  type="link"
-                  size="small"
-                  danger
-                  icon={<DeleteOutlined />}
-                  onClick={() => clearSecret(item)}
-                  className="b-px-0"
-                >
-                  {t('clearSecret')}
-                </Button>
-              )}
-            </span>
+            (item.description || (item.isSecret && item.configured && !readOnly)) && (
+              <span className="settings-extra">
+                {item.description}
+                {item.isSecret && item.configured && !readOnly && (
+                  <Button
+                    type="link"
+                    size="small"
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={() => clearSecret(item)}
+                    className="b-px-0"
+                  >
+                    {t('clearSecret')}
+                  </Button>
+                )}
+              </span>
+            )
           }
         >
           {renderInput(item)}

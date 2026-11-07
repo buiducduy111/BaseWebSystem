@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { SettingDefinition } from '../constants/settings';
+import type { SettingValueType } from '../constants/settings';
 
 const settingNameSchema = z.string().trim().min(1).max(255);
 const settingValueSchema = z.string().max(65535).nullable();
@@ -37,13 +37,47 @@ export const importSettingsSchema = z.object({
 
 export type ImportSettingsInput = z.input<typeof importSettingsSchema>;
 
-/** 1 key hệ thống kèm giá trị hiện tại */
-export interface SettingItemDto extends SettingDefinition {
+export interface SettingOptionDto {
+  value: string;
+  label: string;
+}
+
+/**
+ * 1 key hệ thống kèm giá trị hiện tại — đủ thông tin để frontend tự sinh ô nhập
+ * (nhãn, mô tả đã dịch theo ngôn ngữ của request).
+ */
+export interface SettingItemDto {
+  name: string;
+  group: string;
+  type: SettingValueType;
+  label: string;
+  description: string;
+  placeholder: string | null;
+  defaultValue: string;
+  isSecret: boolean;
+  isPublic: boolean;
+  /** Chỉ có với select / multiselect */
+  options: SettingOptionDto[] | null;
   /** null nếu là key bí mật (không bao giờ trả giá trị thật về client) */
   value: string | null;
   /** Đã có giá trị khác rỗng */
   configured: boolean;
   updatedAt: string | null;
+}
+
+/** Gợi ý hiển thị đầu nhóm: 1 dòng chữ + các dòng code (vd. URL cần khai báo) */
+export interface SettingHintDto {
+  text: string;
+  code: string[];
+}
+
+/** 1 nhóm cài đặt (thứ tự nhóm và thứ tự key do backend quyết định) */
+export interface SettingGroupDto {
+  name: string;
+  title: string;
+  description: string;
+  hint: SettingHintDto | null;
+  items: SettingItemDto[];
 }
 
 export interface SettingsExportFile {

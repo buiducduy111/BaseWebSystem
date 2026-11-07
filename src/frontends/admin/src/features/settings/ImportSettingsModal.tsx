@@ -1,5 +1,5 @@
 import { InboxOutlined } from '@ant-design/icons';
-import { getSettingDefinition, type SettingsExportFile } from '@base/shared';
+import type { SettingsExportFile } from '@base/shared';
 import { getErrorMessage, useApi } from '@base/ui';
 import { Alert, App, Checkbox, Modal, Table, Tag, Typography, Upload } from 'antd';
 import { useState } from 'react';
@@ -37,10 +37,13 @@ function parseSettingsFile(text: string): Row[] | null {
 
 export function ImportSettingsModal({
   open,
+  knownKeys,
   onClose,
   onImported,
 }: {
   open: boolean;
+  /** Key hệ thống (lấy từ GET /settings) để đánh dấu key sẽ bị bỏ qua */
+  knownKeys: ReadonlySet<string>;
   onClose: () => void;
   onImported: () => void;
 }) {
@@ -144,7 +147,7 @@ export function ImportSettingsModal({
                 render: (v: string) => (
                   <>
                     <code>{v}</code>{' '}
-                    {!getSettingDefinition(v) && <Tag>{t('importUnknownTag')}</Tag>}
+                    {!knownKeys.has(v) && <Tag>{t('importUnknownTag')}</Tag>}
                   </>
                 ),
               },

@@ -82,7 +82,7 @@ Chỉ các **key hệ thống** khai báo ở `src/packages/shared/src/constants
 - `isPublic`: frontend đọc được không cần đăng nhập qua `GET /settings/public`.
 - `isSecret`: không bao giờ trả giá trị về client; để trống khi lưu = giữ nguyên; chỉ export khi chọn "kèm giá trị bí mật".
 - Import JSON nhận file export, mảng `[{ name, value }]` hoặc object `{ key: value }`; key không thuộc hệ thống bị bỏ qua.
-- Thêm key mới: thêm vào `SETTING_DEFINITIONS`, thêm nhãn/mô tả vào `settings.keys` trong `src/frontends/admin/src/locales/{vi,en}.ts`, chạy `pnpm db:seed` để tạo giá trị mặc định.
+- Thêm key mới: thêm vào `SETTING_DEFINITIONS`, thêm nhãn/mô tả vào `settings.keys` trong `src/backends/api/src/i18n/{vi,en}.ts` (backend trả sẵn qua `GET /settings`, frontend tự sinh form — không sửa frontend), chạy `pnpm db:seed` để tạo giá trị mặc định (tuỳ chọn).
 
 ## Email, Google, xác minh email
 

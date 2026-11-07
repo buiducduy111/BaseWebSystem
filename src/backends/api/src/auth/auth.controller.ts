@@ -25,7 +25,8 @@ import {
 import { t } from '../i18n';
 import { toMeDto } from '../users/user.mapper';
 import { AuthService } from './auth.service';
-import { appBaseUrl, GoogleService, type GoogleCallbackQuery } from './google.service';
+import { appBaseUrl } from '../config/app-urls';
+import { GoogleService, type GoogleCallbackQuery } from './google.service';
 import type { Principal } from './principal';
 import { SessionService, type SessionResult } from './session.service';
 

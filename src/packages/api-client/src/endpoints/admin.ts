@@ -10,7 +10,7 @@ import type {
   PublicSettings,
   RoleDto,
   SendNotificationInput,
-  SettingItemDto,
+  SettingGroupDto,
   SettingsExportFile,
   UpdatePermissionInput,
   UpdateRoleInput,
@@ -48,11 +48,11 @@ export function createPermissionsApi(http: HttpClient) {
 export function createSettingsApi(http: HttpClient) {
   return {
     public: async () => (await http.get<PublicSettings>('/settings/public')).data,
-    /** Toàn bộ key hệ thống kèm giá trị (key bí mật không có giá trị) */
-    list: async () => (await http.get<SettingItemDto[]>('/settings')).data,
+    /** Key hệ thống theo nhóm: nhãn, mô tả, kiểu, lựa chọn + giá trị (key bí mật không có giá trị) */
+    list: async () => (await http.get<SettingGroupDto[]>('/settings')).data,
     /** Lưu các key được gửi lên; key bí mật không gửi thì giữ nguyên */
     update: async (values: Record<string, string | null>) =>
-      (await http.put<SettingItemDto[]>('/settings', { values })).data,
+      (await http.put<SettingGroupDto[]>('/settings', { values })).data,
     export: async (includeSecrets: boolean) =>
       (await http.get<SettingsExportFile>('/settings/export', { query: { includeSecrets } })).data,
     import: async (input: ImportSettingsInput) =>

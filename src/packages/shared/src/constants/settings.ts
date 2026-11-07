@@ -1,8 +1,23 @@
 /**
  * Các key cài đặt hệ thống. Trang admin chỉ hiển thị và cho cấu hình các key này
- * (không có key tự do). Tên + mô tả được dịch ở frontend theo `settings:keys.<name>`.
+ * (không có key tự do). Nhãn + mô tả + nhãn lựa chọn được dịch ở backend
+ * (`settings.keys.<name>` trong `backends/api/src/i18n`), API `GET /settings` trả sẵn
+ * để frontend tự sinh form — thêm key mới không phải sửa frontend.
  */
-export type SettingValueType = 'string' | 'number' | 'boolean' | 'text' | 'email' | 'url';
+export type SettingValueType =
+  | 'string'
+  | 'text'
+  | 'number'
+  | 'boolean'
+  | 'email'
+  | 'url'
+  /** Chọn 1 giá trị trong `options` / `optionsSource` */
+  | 'select'
+  /** Chọn nhiều giá trị, lưu DB dạng chuỗi phân tách bằng dấu phẩy */
+  | 'multiselect';
+
+/** Nguồn lựa chọn động: backend nạp từ DB khi trả danh sách cài đặt */
+export type SettingOptionsSource = 'roles';
 
 export const SETTING_GROUPS = [
   'general',
@@ -23,7 +38,12 @@ export interface SettingDefinition {
   isSecret?: boolean;
   /** Frontend đọc được qua GET /settings/public mà không cần đăng nhập */
   isPublic?: boolean;
+  /** Placeholder của ô nhập */
   example?: string;
+  /** select / multiselect: giá trị cố định; nhãn dịch theo `settings.keys.<name>.options.<value>` */
+  options?: readonly string[];
+  /** select / multiselect: lấy lựa chọn từ DB thay vì `options` */
+  optionsSource?: SettingOptionsSource;
 }
 
 export const SETTING_DEFINITIONS = [
@@ -35,7 +55,13 @@ export const SETTING_DEFINITIONS = [
     defaultValue: 'true',
     isPublic: true,
   },
-  { name: 'default_role', group: 'general', type: 'string', defaultValue: 'User', example: 'User' },
+  {
+    name: 'default_role',
+    group: 'general',
+    type: 'select',
+    optionsSource: 'roles',
+    defaultValue: 'User',
+  },
 
   {
     name: 'require_email_verification',
@@ -45,13 +71,13 @@ export const SETTING_DEFINITIONS = [
     isPublic: true,
   },
   { name: 'require_2fa_admin', group: 'security', type: 'boolean', defaultValue: 'false' },
-  /** Phương thức 2FA được phép bật, phân tách bằng dấu phẩy: totp, email, passkey */
+  /** Phương thức 2FA được phép bật (lưu dạng `totp,email,passkey`) */
   {
     name: 'two_factor_methods',
     group: 'security',
-    type: 'string',
+    type: 'multiselect',
+    options: ['totp', 'email', 'passkey'],
     defaultValue: 'totp,email,passkey',
-    example: 'totp,email,passkey',
   },
   /** Cho phép email là phương thức 2FA duy nhất của tài khoản quản trị (mặc định: phải có TOTP hoặc passkey) */
   { name: 'admin_2fa_allow_email', group: 'security', type: 'boolean', defaultValue: 'false' },

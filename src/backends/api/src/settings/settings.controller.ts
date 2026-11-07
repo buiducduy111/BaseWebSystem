@@ -2,9 +2,11 @@ import { Controller, Get, HttpCode, HttpStatus, Post, Put } from '@nestjs/common
 import { exportSettingsQuerySchema, importSettingsSchema, updateSettingsSchema } from '@base/shared';
 import type { z } from 'zod';
 import type { Principal } from '../auth/principal';
+import type { RequestContext } from '../core/request-context';
 import {
   CurrentPrincipal,
   Public,
+  ReqCtx,
   RequirePermission,
   ZodBody,
   ZodQuery,
@@ -22,16 +24,20 @@ export class SettingsController {
     return this.settingsService.getPublic();
   }
 
+  /** Danh sách key theo nhóm, nhãn/mô tả dịch theo ngôn ngữ request — frontend tự sinh form */
   @RequirePermission('settings.list')
   @Get()
-  list() {
-    return this.settingsService.list();
+  list(@ReqCtx() { locale }: RequestContext) {
+    return this.settingsService.list(locale);
   }
 
   @RequirePermission('settings.update')
   @Put()
-  update(@ZodBody(updateSettingsSchema) { values }: z.infer<typeof updateSettingsSchema>) {
-    return this.settingsService.update(values);
+  update(
+    @ZodBody(updateSettingsSchema) { values }: z.infer<typeof updateSettingsSchema>,
+    @ReqCtx() { locale }: RequestContext,
+  ) {
+    return this.settingsService.update(values, locale);
   }
 
   @RequirePermission('settings.export')

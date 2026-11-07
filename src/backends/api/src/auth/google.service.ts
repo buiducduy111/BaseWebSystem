@@ -13,6 +13,7 @@ import {
   verifyJwt,
   type RequestLike,
 } from '@base/server-kit';
+import { GOOGLE_OAUTH_PATH, googleRedirectUri } from '../config/app-urls';
 import { getEnv } from '../config/env';
 import { InjectDb, type Database } from '../core/database';
 import { MINUTE, RateLimitService } from '../core/rate-limit.service';
@@ -28,7 +29,7 @@ const USERINFO_URL = 'https://openidconnect.googleapis.com/v1/userinfo';
 
 const STATE_AUDIENCE = 'google-oauth-state';
 const STATE_COOKIE = 'g_oauth_state';
-const COOKIE_PATH = '/api/v1/auth/google';
+const COOKIE_PATH = GOOGLE_OAUTH_PATH;
 
 interface GoogleProfile {
   sub: string;
@@ -49,16 +50,6 @@ export interface GoogleCallbackQuery {
 export type GoogleCallbackOutcome =
   | { type: 'session'; result: SessionResult; returnTo: string }
   | { type: 'twoFactor'; tempToken: string; setup: boolean };
-
-export function appBaseUrl(app: AppName): string {
-  const env = getEnv();
-  return (app === 'admin' ? env.ADMIN_APP_URL : env.USER_APP_URL).replace(/\/$/, '');
-}
-
-/** Callback đi qua reverse proxy / dev proxy của chính app nên cookie cùng origin với app */
-function redirectUri(app: AppName) {
-  return `${appBaseUrl(app)}${COOKIE_PATH}/callback`;
-}
 
 /** Đường dẫn nội bộ an toàn để quay về sau khi đăng nhập (chặn open redirect) */
 function safeReturnPath(value: unknown): string {
@@ -107,7 +98,7 @@ export class GoogleService {
     const url = new URL(AUTHORIZE_URL);
     url.search = new URLSearchParams({
       client_id: credentials.clientId,
-      redirect_uri: redirectUri(app),
+      redirect_uri: googleRedirectUri(app),
       response_type: 'code',
       scope: 'openid email profile',
       state,
@@ -200,7 +191,7 @@ export class GoogleService {
           code,
           client_id: credentials.clientId,
           client_secret: credentials.clientSecret,
-          redirect_uri: redirectUri(app),
+          redirect_uri: googleRedirectUri(app),
           grant_type: 'authorization_code',
         }),
         signal: AbortSignal.timeout(10_000),

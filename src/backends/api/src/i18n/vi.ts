@@ -85,6 +85,99 @@ export const vi = {
   settings: {
     invalidValue: 'Giá trị của "{{name}}" không hợp lệ',
     unknownKey: '"{{name}}" không phải key cài đặt của hệ thống',
+    /** Tiêu đề, mô tả, gợi ý (tuỳ chọn) của từng nhóm — trang admin hiển thị theo */
+    groups: {
+      general: {
+        title: 'Chung',
+        description: 'Tên hệ thống, đăng ký tài khoản, vai trò mặc định.',
+      },
+      security: {
+        title: 'Bảo mật',
+        description: 'Xác minh email, xác thực 2 lớp và vị trí đăng nhập.',
+      },
+      mail: {
+        title: 'Email (SMTP)',
+        description: 'Máy chủ gửi email. Dùng khi chưa cấu hình template Sendify.',
+      },
+      sendify: {
+        title: 'Sendify',
+        description: 'Gửi email theo template qua sendify.vn (xác minh email, đặt lại mật khẩu).',
+      },
+      google: {
+        title: 'Đăng nhập Google',
+        description: 'OAuth client tạo tại Google Cloud Console. Để trống để tắt.',
+        hint: 'Authorized redirect URI cần khai báo trên Google:',
+      },
+      captcha: {
+        title: 'Captcha',
+        description: 'Cloudflare Turnstile cho trang đăng ký. Để trống để tắt.',
+      },
+    },
+    /** Nhãn + mô tả từng key; `options.<value>` là nhãn lựa chọn của select / multiselect */
+    keys: {
+      site_name: { label: 'Tên hệ thống', description: 'Hiển thị trên giao diện và trong email.' },
+      allow_registration: {
+        label: 'Cho phép đăng ký',
+        description: 'Người dùng tự tạo tài khoản ở trang user.',
+      },
+      default_role: { label: 'Vai trò mặc định', description: 'Gán cho tài khoản mới đăng ký.' },
+      require_email_verification: {
+        label: 'Bắt buộc xác minh email khi đăng ký',
+        description:
+          'Gửi mã xác minh ngay khi đăng ký; tài khoản chưa xác minh không dùng được hệ thống.',
+      },
+      require_2fa_admin: {
+        label: 'Bắt buộc 2FA cho quản trị viên',
+        description: 'Tài khoản vào trang admin phải bật xác thực 2 lớp.',
+      },
+      two_factor_methods: {
+        label: 'Phương thức 2FA được phép',
+        description:
+          'Bỏ 1 phương thức thì người dùng không bật mới được, người đang dùng vẫn đăng nhập bình thường. Để trống = chỉ ứng dụng xác thực.',
+        options: { totp: 'Ứng dụng xác thực', email: 'Email', passkey: 'Passkey' },
+      },
+      admin_2fa_allow_email: {
+        label: 'Cho phép quản trị viên chỉ dùng email làm 2FA',
+        description:
+          'Mặc định tài khoản quản trị phải có ứng dụng xác thực hoặc passkey, vì email cũng là kênh đặt lại mật khẩu.',
+      },
+      login_geoip_enabled: {
+        label: 'Tra vị trí đăng nhập qua dịch vụ ngoài khi thiếu',
+        description:
+          'Khi header Cloudflare không có thành phố (chưa bật Managed Transform "Add visitor location headers") thì tra IP qua ipwho.is — IP được gửi tới dịch vụ này. Đã bật Managed Transform thì không tra ngoài.',
+      },
+      smtp_host: {
+        label: 'SMTP host',
+        description: 'Để trống thì email chỉ được ghi ra log (môi trường dev).',
+      },
+      smtp_port: { label: 'SMTP port', description: 'Thường là 587 (STARTTLS) hoặc 465 (SSL).' },
+      smtp_secure: { label: 'Dùng SSL/TLS', description: 'Bật khi dùng cổng 465.' },
+      smtp_user: { label: 'Tài khoản SMTP', description: '' },
+      smtp_password: { label: 'Mật khẩu SMTP', description: '' },
+      mail_from: { label: 'Người gửi', description: 'Địa chỉ hiển thị ở mục "From".' },
+      sendify_api_key: { label: 'API key', description: 'Lấy tại trang quản lý Sendify.' },
+      sendify_from: {
+        label: 'Người gửi',
+        description: 'Để trống thì dùng "Người gửi" ở mục SMTP.',
+      },
+      sendify_template_verify_email: {
+        label: 'Template xác minh email',
+        description: 'Biến: fullName, verificationCode, expiresInMinutes, appName.',
+      },
+      sendify_template_two_factor_code: {
+        label: 'Template mã xác thực 2 lớp',
+        description: 'Biến: fullName, code, expiresInMinutes, appName, ipAddress, device.',
+      },
+      sendify_template_reset_password: {
+        label: 'Template đặt lại mật khẩu',
+        description:
+          'Biến: fullName, resetLink, expiresInMinutes, appName. Để trống thì gửi qua SMTP.',
+      },
+      google_client_id: { label: 'Client ID', description: '' },
+      google_client_secret: { label: 'Client secret', description: '' },
+      turnstile_site_key: { label: 'Site key', description: '' },
+      turnstile_secret_key: { label: 'Secret key', description: '' },
+    },
   },
   permissions: {
     notFound: 'Không tìm thấy quyền',

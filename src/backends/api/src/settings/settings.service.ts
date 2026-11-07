@@ -1,40 +1,81 @@
 import { Injectable } from '@nestjs/common';
-import { inArray, settings, sql } from '@base/db';
+import { asc, inArray, roles, settings, sql } from '@base/db';
 import {
+  APPS,
+  DEFAULT_LOCALE,
   getSettingDefinition,
   SETTING_DEFINITIONS,
+  SETTING_GROUPS,
   type ImportSettingsResult,
+  type Locale,
   type PublicSettings,
   type SettingDefinition,
+  type SettingGroup,
+  type SettingGroupDto,
+  type SettingHintDto,
   type SettingItemDto,
   type SettingName,
   type SettingsExportFile,
 } from '@base/shared';
 import { badRequest } from '@base/server-kit';
+import { googleRedirectUri } from '../config/app-urls';
 import { InjectDb, type Database } from '../core/database';
+import { t } from '../i18n';
 
 /** Cache toàn bộ settings trong bộ nhớ, tự làm mới sau 30 giây hoặc khi có thay đổi */
 const CACHE_TTL_MS = 30 * 1000;
 
 const DEFINITIONS = SETTING_DEFINITIONS as readonly SettingDefinition[];
 
+/**
+ * Các dòng code hiển thị dưới gợi ý của nhóm (chữ gợi ý ở i18n `settings.groups.<group>.hint`).
+ * Nhóm không có gợi ý thì không cần khai báo.
+ */
+const GROUP_HINT_CODE: Partial<Record<SettingGroup, () => string[]>> = {
+  google: () => APPS.map((app) => googleRedirectUri(app)),
+};
+
+/** Giá trị hợp lệ của từng key select / multiselect */
+type OptionValues = Map<string, readonly string[]>;
+
+/** Bản dịch nếu có, không thì dùng giá trị dự phòng (thêm key mà quên dịch vẫn hiển thị được) */
+function translate(locale: Locale, key: string, fallback: string): string {
+  return t.has(key) ? t(locale, key) : fallback;
+}
+
 /** Chuẩn hoá + kiểm tra giá trị theo kiểu của key; trả về chuỗi lưu DB */
-function normalizeValue(def: SettingDefinition, raw: string | null): string {
+function normalizeValue(def: SettingDefinition, raw: string | null, options: OptionValues): string {
   const value = (raw ?? '').trim();
   if (value === '') return '';
+  const invalid = () => badRequest('settings.invalidValue', { name: def.name });
   switch (def.type) {
     case 'boolean':
-      if (value !== 'true' && value !== 'false') throw badRequest('settings.invalidValue', { name: def.name });
+      if (value !== 'true' && value !== 'false') throw invalid();
       return value;
     case 'number':
-      if (!Number.isFinite(Number(value))) throw badRequest('settings.invalidValue', { name: def.name });
+      if (!Number.isFinite(Number(value))) throw invalid();
       return String(Number(value));
     case 'email':
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) throw badRequest('settings.invalidValue', { name: def.name });
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) throw invalid();
       return value;
     case 'url':
-      if (!URL.canParse(value)) throw badRequest('settings.invalidValue', { name: def.name });
+      if (!URL.canParse(value)) throw invalid();
       return value;
+    case 'select':
+      if (!(options.get(def.name) ?? []).includes(value)) throw invalid();
+      return value;
+    case 'multiselect': {
+      const allowed = options.get(def.name) ?? [];
+      const picked = new Set(
+        value
+          .split(',')
+          .map((v) => v.trim())
+          .filter(Boolean),
+      );
+      if ([...picked].some((v) => !allowed.includes(v))) throw invalid();
+      // Lưu theo thứ tự của danh sách lựa chọn để giá trị ổn định
+      return allowed.filter((v) => picked.has(v)).join(',');
+    }
     default:
       return raw ?? '';
   }
@@ -69,6 +110,30 @@ export class SettingsService {
       });
   }
 
+  /** Giá trị hợp lệ của các key select / multiselect (nguồn động chỉ nạp khi cần) */
+  private async loadOptionValues(defs: readonly SettingDefinition[]): Promise<OptionValues> {
+    const result: OptionValues = new Map();
+    let roleNames: string[] | undefined;
+    for (const def of defs) {
+      if (def.optionsSource === 'roles') {
+        roleNames ??= (
+          await this.db.select({ name: roles.name }).from(roles).orderBy(asc(roles.name))
+        ).map((r) => r.name);
+        result.set(def.name, roleNames);
+      } else if (def.options) {
+        result.set(def.name, def.options);
+      }
+    }
+    return result;
+  }
+
+  private groupHint(group: SettingGroup, locale: Locale): SettingHintDto | null {
+    const key = `settings.groups.${group}.hint`;
+    const code = GROUP_HINT_CODE[group]?.() ?? [];
+    if (!t.has(key) && !code.length) return null;
+    return { text: translate(locale, key, ''), code };
+  }
+
   /** Giá trị dạng chuỗi; chưa có trong DB thì lấy giá trị mặc định */
   async getString(name: SettingName): Promise<string> {
     const value = (await this.loadValues()).get(name);
@@ -96,8 +161,11 @@ export class SettingsService {
     };
   }
 
-  /** Toàn bộ key hệ thống kèm giá trị (key bí mật không trả giá trị) */
-  async list(): Promise<SettingItemDto[]> {
+  /**
+   * Toàn bộ key hệ thống theo nhóm, kèm nhãn / mô tả / lựa chọn đã dịch và giá trị hiện tại
+   * (key bí mật không trả giá trị). Frontend sinh form hoàn toàn từ dữ liệu này.
+   */
+  async list(locale: Locale = DEFAULT_LOCALE): Promise<SettingGroupDto[]> {
     const rows = await this.db
       .select()
       .from(settings)
@@ -108,28 +176,61 @@ export class SettingsService {
         ),
       );
     const byName = new Map(rows.map((r) => [r.name, r]));
-    return DEFINITIONS.map((d) => {
+    const optionValues = await this.loadOptionValues(DEFINITIONS);
+
+    const toItem = (d: SettingDefinition): SettingItemDto => {
       const row = byName.get(d.name);
-      const value = row?.value ?? d.defaultValue;
+      const keyPrefix = `settings.keys.${d.name}`;
+      const values = optionValues.get(d.name);
       return {
-        ...d,
-        value: d.isSecret ? null : value,
+        name: d.name,
+        group: d.group,
+        type: d.type,
+        label: translate(locale, `${keyPrefix}.label`, d.name),
+        description: translate(locale, `${keyPrefix}.description`, ''),
+        placeholder: d.example ?? null,
+        defaultValue: d.defaultValue,
+        isSecret: Boolean(d.isSecret),
+        isPublic: Boolean(d.isPublic),
+        options: values
+          ? values.map((value) => ({
+              value,
+              label: translate(locale, `${keyPrefix}.options.${value}`, value),
+            }))
+          : null,
+        value: d.isSecret ? null : (row?.value ?? d.defaultValue),
         configured: Boolean(row?.value),
         updatedAt: row?.updatedAt.toISOString() ?? null,
       };
-    });
+    };
+
+    return SETTING_GROUPS.map((group) => ({
+      name: group,
+      title: translate(locale, `settings.groups.${group}.title`, group),
+      description: translate(locale, `settings.groups.${group}.description`, ''),
+      hint: this.groupHint(group, locale),
+      items: DEFINITIONS.filter((d) => d.group === group).map(toItem),
+    })).filter((g) => g.items.length > 0);
   }
 
   /** Lưu các key được gửi lên (key không phải key hệ thống thì báo lỗi) */
-  async update(values: Record<string, string | null>): Promise<SettingItemDto[]> {
-    const entries = Object.entries(values).map(([name, raw]) => {
+  async update(
+    values: Record<string, string | null>,
+    locale: Locale = DEFAULT_LOCALE,
+  ): Promise<SettingGroupDto[]> {
+    const defs = Object.keys(values).map((name) => {
       const def = getSettingDefinition(name);
       if (!def) throw badRequest('settings.unknownKey', { name });
-      return { name, value: normalizeValue(def, raw) };
+      return def;
     });
+    const optionValues = await this.loadOptionValues(defs);
+    const entries = defs.map((def) => ({
+      name: def.name,
+      value: normalizeValue(def, values[def.name] ?? null, optionValues),
+    }));
     await this.upsertMany(entries);
     this.invalidate();
-    return this.list();
+    return this.list(locale);
   }
 
   async exportAll(includeSecrets: boolean): Promise<SettingsExportFile> {
@@ -153,9 +254,15 @@ export class SettingsService {
     // Key trùng trong file: lấy giá trị cuối cùng
     const unique = [...new Map(items.map((i) => [i.name, i])).values()];
     const unknown = unique.filter((i) => !getSettingDefinition(i.name)).map((i) => i.name);
-    const known = unique
-      .filter((i) => getSettingDefinition(i.name))
-      .map((i) => ({ name: i.name, value: normalizeValue(getSettingDefinition(i.name)!, i.value) }));
+    const knownItems = unique.flatMap((i) => {
+      const def = getSettingDefinition(i.name);
+      return def ? [{ def, value: i.value }] : [];
+    });
+    const optionValues = await this.loadOptionValues(knownItems.map((i) => i.def));
+    const known = knownItems.map((i) => ({
+      name: i.def.name,
+      value: normalizeValue(i.def, i.value, optionValues),
+    }));
 
     this.invalidate();
     const current = await this.loadValues();
