@@ -16,7 +16,7 @@ Mã dự phòng: 8 mã `XXXX-XXXX`, dùng chung cho mọi phương thức, chỉ
 
 ## 2. Quy tắc
 
-1. `users.twoFactorEnabled = true` ⇔ có ít nhất 1 phương thức đang bật (tính lại sau mỗi lần thêm/xoá). Code cũ đọc cờ này (`google.service`, `user.mapper`, trang admin) giữ nguyên.
+1. `users.twoFactorEnabled = true` ⇔ có ít nhất 1 phương thức đang bật (tính lại sau mỗi lần thêm/xoá). Các chỗ chỉ cần biết "có 2FA hay không" (`google.service`, `user.mapper`, trang admin) đọc cờ này.
 2. Bật phương thức **đầu tiên** → sinh 8 mã dự phòng (trả về 1 lần) và đặt làm phương thức mặc định. Thêm phương thức sau → không đổi mã dự phòng.
 3. Gỡ phương thức **cuối cùng** → tắt 2FA, xoá mã dự phòng. Gỡ phương thức mặc định → mặc định chuyển sang phương thức còn lại theo ưu tiên `passkey > totp > email`.
 4. **Xác minh lại (step-up)**: khi 2FA đang bật, các thao tác thêm/xoá phương thức, xoá passkey, tạo lại mã dự phòng, tắt toàn bộ cần header `x-reauth-token` (JWT audience `2fa-reauth`, 5 phút, gắn với user + app). Thiếu/không hợp lệ → `403 twoFactor.reauthRequired`. Đổi tên passkey và đổi phương thức mặc định không cần.
@@ -26,9 +26,12 @@ Mã dự phòng: 8 mã `XXXX-XXXX`, dùng chung cho mọi phương thức, chỉ
 8. Admin "Tắt 2FA giúp user" (`POST /users/:id/disable-2fa`) xoá sạch TOTP, email, passkey, mã dự phòng.
 9. Tắt toàn bộ 2FA (người dùng tự làm) cần xác minh lại + mật khẩu, và đăng xuất các thiết bị khác.
 
-## 3. Dữ liệu (migration `0003_clean_carlie_cooper`)
+## 3. Dữ liệu
 
-- `users`: thêm `two_factor_totp_enabled`, `two_factor_email_enabled`, `two_factor_default_method`. Dữ liệu cũ: user đang bật 2FA được chuyển thành TOTP đang bật.
+Schema: `src/packages/db/src/schema/two-factor.ts` và `users.ts`; toàn bộ bảng nằm trong migration khởi tạo `0000_absurd_sleepwalker`.
+
+- `users`: `two_factor_enabled`, `two_factor_secret` (secret TOTP đã mã hoá), `two_factor_totp_enabled`, `two_factor_totp_last_step`, `two_factor_email_enabled`, `two_factor_default_method`.
+- `two_factor_backup_codes`: mã dự phòng (SHA-256), xoá theo user (`ON DELETE CASCADE`).
 - `passkeys`: `credential_id` (unique), `public_key` (COSE, base64url), `counter`, `transports`, `device_type`, `backed_up`, `aaguid`, `name`, `last_used_at`.
 - `auth_challenges`: thử thách dùng 1 lần — `type` (`email_otp` | `webauthn_register` | `webauthn_authenticate`), `purpose` (`login` | `enable` | `reauth`), `value` (SHA-256 của mã email hoặc challenge WebAuthn), `attempts`, `expires_at`, `consumed_at`. Mỗi (user, type, purpose) chỉ 1 bản ghi còn hiệu lực; mã cho mục đích này không dùng được cho mục đích khác. Lưu DB nên chạy được nhiều instance; tự dọn bản ghi hết hạn > 1 ngày.
 - `login_histories.two_factor_method`: cách đã qua 2FA (`totp` | `email` | `passkey` | `backup`), trả về trong `GET /me/login-history`.
@@ -72,7 +75,7 @@ Token tạm có `purpose` (`verify` / `setup`) và gắn với app; token loại
 | `POST /me/2fa/backup-codes` | ✔ | Tạo lại mã dự phòng |
 | `POST /me/2fa/disable { password? }` | ✔ | Tắt toàn bộ |
 
-Các route cũ `/me/2fa/setup`, `/me/2fa/enable` đã bỏ (frontend cùng repo đã chuyển sang route mới). `api-client` tự gắn `x-reauth-token` sau khi gọi `me.twoFactor.reauth()`; UI dùng hook `useReauth` để tự mở hộp thoại xác minh lại khi cần.
+Route có cột "khi 2FA đang bật" / ✔ dùng decorator `@RequireReauth()` (`auth/two-factor/reauth.guard.ts`). `api-client` tự gắn `x-reauth-token` sau khi gọi `me.twoFactor.reauth()`; UI dùng hook `useReauth` để tự mở hộp thoại xác minh lại khi cần.
 
 ## 5. Cấu hình
 
@@ -109,13 +112,14 @@ WebAuthn bắt buộc HTTPS (trừ `localhost`).
 
 | File | Nội dung |
 |---|---|
-| `auth.session.test.ts` | Đăng nhập, đăng ký, refresh xoay vòng + ân hạn, logout, guard, khoá tài khoản, xác minh email |
+| `auth.session.test.ts` | Đăng nhập, đăng ký, refresh xoay vòng + ân hạn, logout, guard, khoá tài khoản, xác minh email, lịch sử đăng nhập (chỉ giữ `LOGIN_HISTORY_LIMIT` lần gần nhất) |
 | `auth.password.test.ts` | Quên / đặt lại / đổi mật khẩu, thu hồi phiên, rate limit |
 | `two-factor.totp.test.ts` | TOTP, chống dùng lại mã, mã dự phòng, token tạm (giả, hết hạn, khác app, khác loại), token xác minh lại |
 | `two-factor.email.test.ts` | Email OTP: cooldown, giới hạn gửi, sai 5 lần, hết hạn, tách mục đích, kết hợp phương thức |
 | `two-factor.passkey.test.ts` | Đăng ký / đăng nhập passkey, origin lạ, RP ID sai, replay, counter, chữ ký bị sửa, giới hạn |
 | `two-factor.policy.test.ts` | Bắt buộc 2FA cho admin, thiết lập lúc đăng nhập, tắt toàn bộ, admin tắt giúp user, thông báo |
 | `two-factor.unit.test.ts` | Schema, `maskEmail`, cấu hình WebAuthn |
+| `settings.test.ts` | Cài đặt động: nhóm/nhãn dịch theo ngôn ngữ, gợi ý nhóm (redirect URI Google, Sendify trước SMTP), ẩn key bí mật, `select` / `multiselect` |
 | `rate-limit.redis.test.ts` | Rate limit trên Redis (ioredis-mock; Redis thật khi đặt `TEST_REDIS_URL`), dùng chung giữa instance, dự phòng khi Redis lỗi |
 | `server-kit/test/security.test.ts` | AES-GCM, scrypt, JWT, TOTP RFC 6238, rate limit, cookie, IP + proxy tin cậy |
 

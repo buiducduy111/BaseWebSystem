@@ -11,7 +11,9 @@ Monorepo khung cho hệ thống quản lý: backend **NestJS** (chỉ API), 2 fr
 | Quên / đặt lại mật khẩu | Có | Có |
 | Tài khoản | Họ, tên, avatar, xác minh email, đổi mật khẩu, quản lý 2FA (nhiều phương thức, nhiều passkey, phương thức mặc định) | Như admin |
 | Lịch sử đăng nhập | Của chính mình (trang tài khoản) + xem của từng người dùng (modal thông tin, quyền `users.loginHistory`) | Của chính mình: thời gian, thiết bị, IP, vị trí |
-| Khác | Dashboard (biểu đồ tăng trưởng người dùng), quản lý người dùng, vai trò & phân quyền, quyền theo API (xem/sửa URL, đồng bộ), cài đặt hệ thống (import/export JSON) | Thông báo (chuông + trang danh sách) |
+| Khác | Dashboard (biểu đồ người dùng mới theo tháng), quản lý người dùng (sửa tại chỗ, đặt lại mật khẩu, tắt 2FA giúp), vai trò & phân quyền, quyền theo API (xem/sửa URL, đồng bộ), cài đặt hệ thống (form sinh tự động từ API, import/export JSON) | Trang chủ, thông báo (chuông + trang danh sách) |
+
+Lịch sử đăng nhập chỉ giữ **10 lần gần nhất** của mỗi người dùng (`LOGIN_HISTORY_LIMIT`). Thông báo hệ thống (chào mừng, đổi mật khẩu, thay đổi 2FA) tự gửi theo ngôn ngữ của người dùng; API gửi thông báo từ admin (`POST /notifications`) đã có nhưng trang admin chưa có giao diện.
 
 ## Cấu trúc
 
@@ -29,16 +31,25 @@ src/
     ├── server-kit/     # lỗi có i18n, JWT, mã hoá, TOTP, mailer, rate limit
     ├── api-client/     # SDK gọi API (tự refresh token) cho frontend
     └── ui/             # antd: provider, i18n, auth, layout, trang tài khoản dùng chung
-docs/                   # tài liệu kiến trúc
+docs/                   # tài liệu kiến trúc (xem bảng dưới)
+.claude/                # launch.json (chạy preview 3 app) + skill cho Claude Code
 ```
 
-Chi tiết kiến trúc và quy ước xem [docs/architecture.md](docs/architecture.md).
+| Tài liệu | Nội dung |
+|---|---|
+| [docs/architecture.md](docs/architecture.md) | Luồng request, xác thực, lịch sử đăng nhập, Cloudflare, thông báo, bản đồ API, đa ngôn ngữ, quy ước backend/frontend, thêm module mới |
+| [docs/permissions.md](docs/permissions.md) | Thiết kế phân quyền (RBAC), kiểm tra quyền ở backend/frontend, thêm quyền mới |
+| [docs/permission-sync.md](docs/permission-sync.md) | Nút Đồng bộ quyền giữa code và DB |
+| [docs/settings.md](docs/settings.md) | Cài đặt hệ thống: khai báo, form sinh tự động, thêm cài đặt mới |
+| [docs/two-factor.md](docs/two-factor.md) | 2FA đa phương thức (passkey, TOTP, email), API, giới hạn, danh sách test |
+
+Đổi logo: thay `src/frontends/<user|admin>/src/assets/logo.svg` (sidebar mở rộng) và `logo-mini.svg` (sidebar thu gọn).
 
 Triển khai production (domain đặt sau Cloudflare): xem mục [Triển khai production (Cloudflare)](#triển-khai-production-cloudflare).
 
 ## Chạy lần đầu
 
-Yêu cầu: Node.js 22+, pnpm 10+, PostgreSQL đang chạy (mặc định `localhost:5432`, user `postgres` / pass `postgres`).
+Yêu cầu: Node.js 22+, pnpm 11 (bản ghi trong `packageManager` của `package.json`; `corepack enable` để dùng đúng bản), PostgreSQL đang chạy (mặc định `localhost:5432`, user `postgres` / pass `postgres`).
 
 ```bash
 pnpm install
@@ -86,6 +97,7 @@ Cấu hình ở trang **Admin → Cài đặt**:
 | `pnpm typecheck` | Kiểm tra type toàn repo |
 | `pnpm test` | Test tự động: unit (`server-kit`) + e2e API (NestJS thật trên DB `<tên DB>_test`, **xoá và tạo lại mỗi lần chạy**; đổi bằng `TEST_DATABASE_URL`) |
 | `pnpm lint` / `lint:fix` | ESLint (typescript-eslint, react-hooks, react-refresh) |
+| `pnpm format` | Prettier định dạng toàn repo |
 | `pnpm check` | Lint + typecheck + build (chạy trước khi commit) |
 | `pnpm db:generate` | Sinh migration sau khi sửa schema trong `src/packages/db/src/schema` |
 | `pnpm db:migrate` | Áp dụng migration |

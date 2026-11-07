@@ -34,7 +34,8 @@ Response luôn có dạng `{ data, error, meta? }`: `TransformInterceptor` bọc
 
 ## Lịch sử đăng nhập
 
-- Mỗi lần tạo phiên mới (`createSession`: mật khẩu, 2FA, Google, đăng ký) ghi 1 dòng vào bảng `login_histories`: app, IP, User-Agent, vị trí. Refresh token **không** tính là đăng nhập. Giữ 180 ngày, tự dọn (tối đa 1 lần/giờ).
+- Mỗi lần tạo phiên mới (`createSession`: mật khẩu, 2FA, Google, đăng ký) ghi 1 dòng vào bảng `login_histories`: app, IP, User-Agent, vị trí, cách qua 2FA (`two_factor_method`). Refresh token **không** tính là đăng nhập.
+- **Giới hạn lưu**: mỗi user chỉ giữ `LOGIN_HISTORY_LIMIT` (= 10, khai báo ở `src/packages/shared/src/schemas/login-history.ts`) lần đăng nhập gần nhất; ngay sau khi ghi dòng mới, các dòng cũ hơn của user đó bị xoá (`pruneOld` trong `login-history.service.ts`). Bảng lịch sử ở UI hiện dòng ghi chú về giới hạn này.
 - **Thiết bị**: phân tích User-Agent lúc đọc (`parseUserAgent` trong `server-kit/src/user-agent.ts`), nên sửa parser là áp dụng cho cả dữ liệu cũ.
 - **Vị trí**: lấy từ header Cloudflare (`cf-ipcountry`, `cf-ipcity`, `cf-region`; hỗ trợ cả Vercel `x-vercel-ip-*`). Header thiếu thành phố thì tra IP qua ipwho.is **chạy nền** (không chờ, không làm chậm đăng nhập), có cache trong bộ nhớ; tắt bằng setting `login_geoip_enabled`. IP nội bộ/localhost hiển thị "Mạng nội bộ", mạng Tor hiển thị "Tor".
 - **IP**: `getClientIp` chỉ tin header IP khi request đến từ proxy tin cậy (`TRUSTED_PROXIES`, mặc định loopback); khi đó ưu tiên `CF-Connecting-IP`, không có mới dùng `X-Forwarded-For` (dev qua proxy Vite đã bật `xfwd`). Xem mục [Triển khai sau Cloudflare](#triển-khai-sau-cloudflare).
@@ -88,7 +89,39 @@ Chỉ các **key hệ thống** khai báo ở `src/packages/shared/src/constants
 
 - **Email** (`mail/mail.service.ts`): xác minh email và đặt lại mật khẩu gửi qua **Sendify** theo template (`sendify_template_*`) nếu đã cấu hình, nếu không thì SMTP; chưa cấu hình gì thì ghi log.
 - **Xác minh email**: mã 6 số (lưu hash), hiệu lực 10 phút, gửi lại sau 60 giây. Setting `require_email_verification` bật thì gửi mã ngay khi đăng ký; tài khoản chưa xác minh bị chặn ở mọi API trừ các API tài khoản (`@AllowUnverifiedEmail()`) và frontend chỉ hiện màn hình nhập mã. Tài khoản do admin tạo, tạo qua Google và super admin coi như đã xác minh.
-- **Đăng nhập Google** (`auth/google.service.ts`): OAuth phía server. `GET /auth/google?app=user` → Google → `GET /auth/google/callback` (kiểm tra `state` + cookie chống CSRF) → tạo phiên (cookie refresh) rồi chuyển về app; tài khoản bật 2FA thì quay về `/login?twoFactorToken=...` để nhập mã. Liên kết theo Google ID, sau đó theo email (email Google đã xác minh); chưa có thì tạo tài khoản mới (nếu cho phép đăng ký), không có mật khẩu — người dùng có thể đặt mật khẩu ở trang tài khoản.
+- **Đăng nhập Google** (`auth/google.service.ts`): OAuth phía server. `GET /auth/google?app=user` → Google → `GET /auth/google/callback` (kiểm tra `state` + cookie chống CSRF) → tạo phiên (cookie refresh) rồi chuyển về app; tài khoản bật 2FA thì quay về `/login?twoFactorToken=...` để nhập mã (cần thiết lập 2FA bắt buộc thì `/login?twoFactorSetupToken=...`), lỗi thì `/login?oauthError=<key>`. Redirect URI = `<URL app>/api/v1/auth/google/callback` (`config/app-urls.ts`), trang Admin → Cài đặt → Google hiện sẵn URI của cả 2 app. Backend nhận cả `app=admin`, nhưng hiện chỉ trang user có nút đăng nhập Google. Liên kết theo Google ID, sau đó theo email (email Google đã xác minh); chưa có thì tạo tài khoản mới (nếu cho phép đăng ký), không có mật khẩu — người dùng có thể đặt mật khẩu ở trang tài khoản.
+
+## Thông báo
+
+- Bảng `notifications` (thông báo riêng 1 user: `userId`; hoặc toàn hệ thống: `isGlobal = true`) và `notification_reads` (ai đã đọc thông báo nào). Loại: `info` · `success` · `warning` · `error`.
+- **Thông báo hệ thống**: `NotificationsService.notifyUser(user, key)` lấy tiêu đề/nội dung từ `notifications.<key>.title|message` trong i18n backend, dịch theo `users.lang` lúc gửi. Đang dùng cho: chào mừng khi đăng ký (`welcome`), đổi / đặt lại mật khẩu (`passwordChanged`), bật / tắt 2FA, thêm / gỡ phương thức 2FA.
+- API của người dùng: `GET /me/notifications` (phân trang, `unreadOnly`), `GET /me/notifications/unread-count`, `POST /me/notifications/read { ids }`, `POST /me/notifications/read-all`. UI: chuông + trang `/notifications` ở app user (`src/frontends/user/src/features/notifications`).
+- Admin gửi thông báo: `POST /notifications` (quyền `notifications.send`, gửi cho 1 user hoặc toàn hệ thống), đã có trong SDK (`api.notifications.send`) nhưng **trang admin chưa có giao diện**.
+
+## Dashboard, avatar, health
+
+- **Dashboard**: `GET /dashboard/user-growth?year=` (quyền `dashboard.userGrowth`) đếm user đăng ký mới theo từng tháng, chia tháng theo múi giờ `Asia/Ho_Chi_Minh`; trả kèm `firstYear` để frontend dựng bộ chọn năm.
+- **Avatar**: `POST /me/avatar` (multipart, tối đa 2MB — `AVATAR_MAX_BYTES`), `DELETE /me/avatar`. File lưu ở `<UPLOAD_DIR>/avatars`, phục vụ công khai qua `GET /files/avatars/:name` (`files.controller.ts`).
+- **Health**: `GET /health` (public) chạy `select 1` vào DB: được thì `200` với `"database": "up"`, lỗi thì `503` với `"status": "degraded"` (dùng cho load balancer / giám sát).
+
+## Bản đồ API
+
+Tất cả có tiền tố `/api/v1`. Quyền của từng API khai báo ở `PERMISSION_DEFINITIONS`; route không ghi quyền chỉ cần đăng nhập.
+
+| Module (`src/backends/api/src/…`) | Route chính |
+| --- | --- |
+| `auth/` | `POST /auth/login`, `/auth/register`, `/auth/refresh`, `/auth/logout`, `/auth/forgot-password`, `/auth/reset-password`, `/auth/2fa/*` (public); `GET /auth/me`; `GET /auth/google`, `/auth/google/callback` |
+| `account/` | `/me` (sửa hồ sơ, avatar, đổi mật khẩu, xác minh email, lịch sử đăng nhập, thông báo), `/me/2fa/*` |
+| `users/` | `GET/POST /users`, `GET/PATCH /users/:id`, `POST /users/:id/reset-password`, `POST /users/:id/disable-2fa`, `GET /users/:id/login-history` |
+| `roles/` | `GET/POST /roles`, `GET/PATCH/DELETE /roles/:id`, `PUT /roles/:id/permissions` |
+| `permissions/` | `GET /permissions`, `PATCH /permissions/:id`, `GET/POST /permissions/sync` |
+| `settings/` | `GET /settings/public` (public), `GET/PUT /settings`, `GET /settings/export`, `POST /settings/import` |
+| `notifications/` | `POST /notifications` |
+| `dashboard/` | `GET /dashboard/user-growth` |
+| `files/` | `GET /files/avatars/:name` (public) |
+| `health/` | `GET /health` (public) |
+
+Module không có controller: `mail/` (gửi email), `email-verification/`, `login-history/`, `core/` (DB, rate limit, filter, interceptor, pipe).
 
 ## Đa ngôn ngữ
 
@@ -120,7 +153,7 @@ Chỉ các **key hệ thống** khai báo ở `src/packages/shared/src/constants
 - Tổ chức theo feature: `src/features/<feature>/` gồm page, component, hook react-query.
 - Gọi API qua `useApi()` (SDK) + `@tanstack/react-query`.
 - Phần dùng chung giữa 2 app (layout, đăng nhập, trang tài khoản, i18n chung) đặt ở `@base/ui`.
-- Sidebar theo giao diện hệ thống gốc: `<AppShell variant="admin" | "user">` (rộng 260px, thu gọn 55px, mobile trượt từ trái).
+- Sidebar theo giao diện hệ thống gốc: `<AppShell variant="admin" | "user">` (rộng 260px, thu gọn 55px, mobile trượt từ trái). Logo truyền qua prop `logo` (sidebar mở rộng) và `logoCollapsed` (thu gọn); thiếu thì hiện chữ `brand` / `brandCollapsed`. File logo của từng app: `src/frontends/<app>/src/assets/logo.svg` và `logo-mini.svg` (thay file là đổi logo).
 - Lint: `pnpm lint` (cấu hình ở `eslint.config.mjs`), bao gồm các rule React Compiler của `eslint-plugin-react-hooks` v7 — tránh gọi setState đồng bộ trong effect và đọc/ghi ref trong lúc render.
 
 ## Thêm backend mới

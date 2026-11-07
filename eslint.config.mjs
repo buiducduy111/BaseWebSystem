@@ -13,6 +13,8 @@ export default tseslint.config(
       '**/.turbo/**',
       '**/storage/**',
       'src/packages/db/migrations/**',
+      // Skill của Claude Code (script bên thứ ba, CommonJS), không phải code dự án
+      '.claude/**',
     ],
   },
   js.configs.recommended,
