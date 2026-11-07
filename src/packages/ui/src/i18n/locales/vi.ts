@@ -260,7 +260,9 @@ export const vi = {
     },
     loginHistory: {
       description:
-        'Các lần đăng nhập gần đây vào tài khoản của bạn (lưu trong 180 ngày). Nếu thấy lần đăng nhập lạ, hãy đổi mật khẩu và bật xác thực 2 lớp.',
+        'Các lần đăng nhập gần đây vào tài khoản của bạn. Nếu thấy lần đăng nhập lạ, hãy đổi mật khẩu và bật xác thực 2 lớp.',
+      limitNote:
+        'Hệ thống chỉ lưu {{count}} lần đăng nhập gần nhất, các lần cũ hơn sẽ tự động bị xoá.',
       columns: {
         time: 'Thời gian',
         device: 'Thiết bị',

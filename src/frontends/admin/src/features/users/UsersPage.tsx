@@ -41,12 +41,6 @@ import { useTranslation } from 'react-i18next';
 import { UserFormDrawer } from './UserFormDrawer';
 import { UserInfoModal } from './UserInfoModal';
 
-const SORT_FIELDS: Record<string, ListUsersQuery['sortBy']> = {
-  user: 'firstName',
-  lastLoginAt: 'lastLoginAt',
-  createdAt: 'createdAt',
-};
-
 export function UsersPage() {
   const { t } = useTranslation(['users', 'common']);
   const api = useApi();
@@ -60,7 +54,6 @@ export function UsersPage() {
   const [status, setStatus] = useState<'active' | 'locked' | undefined>();
   const [emailVerification, setEmailVerification] = useState<ListUsersQuery['emailVerification']>();
   const [roleId, setRoleId] = useState<string | undefined>();
-  const [sort, setSort] = useState<Pick<ListUsersQuery, 'sortBy' | 'sortOrder'>>({});
   const [drawer, setDrawer] = useState<{ open: boolean; user?: UserDto }>({ open: false });
   const [viewing, setViewing] = useState<UserDto | null>(null);
   const debouncedSearch = useDebouncedValue(search.trim(), 400);
@@ -72,7 +65,6 @@ export function UsersPage() {
     status,
     emailVerification,
     roleId,
-    ...sort,
   };
   const users = useQuery({
     queryKey: ['users', query],
@@ -126,9 +118,32 @@ export function UsersPage() {
     {
       key: 'user',
       title: t('columns.user'),
-      sorter: true,
       render: (_, u) => <UserCell user={u} />,
       width: 280,
+    },
+    {
+      // Trạng thái chỉ hiện chấm màu: xanh = hoạt động, đỏ = bị khoá
+      key: 'status',
+      width: 48,
+      align: 'center',
+      render: (_, u) => {
+        const label = u.isActive ? t('status.active') : t('status.locked');
+        return (
+          <Tooltip title={label}>
+            <span
+              role="img"
+              aria-label={label}
+              style={{
+                display: 'inline-block',
+                width: 10,
+                height: 10,
+                borderRadius: '50%',
+                backgroundColor: u.isActive ? 'var(--ant-color-success)' : 'var(--ant-color-error)',
+              }}
+            />
+          </Tooltip>
+        );
+      },
     },
     {
       key: 'role',
@@ -141,16 +156,6 @@ export function UsersPage() {
           )}
         </Space>
       ),
-    },
-    {
-      key: 'status',
-      title: t('columns.status'),
-      render: (_, u) =>
-        u.isActive ? (
-          <Tag color="success">{t('status.active')}</Tag>
-        ) : (
-          <Tag color="error">{t('status.locked')}</Tag>
-        ),
     },
     {
       key: 'emailVerified',
@@ -169,23 +174,13 @@ export function UsersPage() {
       ),
     },
     {
-      key: 'twoFactor',
-      title: t('columns.twoFactor'),
-      align: 'center',
-      render: (_, u) =>
-        u.twoFactorEnabled ? <SafetyOutlined style={{ color: 'var(--ant-color-success)' }} /> : '—',
-    },
-    {
       key: 'lastLoginAt',
       title: t('columns.lastLogin'),
-      sorter: true,
       render: (_, u) => formatDateTime(u.lastLoginAt),
     },
     {
       key: 'createdAt',
       title: t('columns.createdAt'),
-      sorter: true,
-      defaultSortOrder: 'descend',
       render: (_, u) => formatDateTime(u.createdAt),
     },
     {
@@ -326,7 +321,7 @@ export function UsersPage() {
           columns={columns}
           dataSource={users.data?.items}
           loading={users.isFetching}
-          scroll={{ x: 1180 }}
+          scroll={{ x: 1000 }}
           pagination={{
             current: page,
             pageSize,
@@ -334,12 +329,9 @@ export function UsersPage() {
             showSizeChanger: true,
             showTotal: (total) => t('common:total', { count: total }),
           }}
-          onChange={(pagination, _filters, sorter) => {
+          onChange={(pagination) => {
             setPage(pagination.current ?? 1);
             setPageSize(pagination.pageSize ?? 20);
-            const s = Array.isArray(sorter) ? sorter[0] : sorter;
-            const field = s?.order ? SORT_FIELDS[String(s.columnKey)] : undefined;
-            setSort(field ? { sortBy: field, sortOrder: s?.order === 'ascend' ? 'asc' : 'desc' } : {});
           }}
         />
       </Card>

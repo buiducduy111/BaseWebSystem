@@ -43,12 +43,11 @@ export function RolesPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [search, setSearch] = useState('');
-  const [sort, setSort] = useState<Pick<ListRolesQuery, 'sortBy' | 'sortOrder'>>({});
   const [form, setForm] = useState<{ open: boolean; role?: RoleDto }>({ open: false });
   const [permRole, setPermRole] = useState<RoleDto | null>(null);
   const debounced = useDebouncedValue(search.trim(), 400);
 
-  const query: ListRolesQuery = { page, pageSize, search: debounced || undefined, ...sort };
+  const query: ListRolesQuery = { page, pageSize, search: debounced || undefined };
   const roles = useQuery({
     queryKey: ['roles', query],
     queryFn: () => api.roles.list(query),
@@ -69,7 +68,6 @@ export function RolesPage() {
     {
       key: 'name',
       title: t('fields.name'),
-      sorter: true,
       width: 240,
       render: (_, r) => (
         <Space size={6}>
@@ -113,8 +111,6 @@ export function RolesPage() {
     {
       key: 'createdAt',
       title: t('common:createdAt'),
-      sorter: true,
-      defaultSortOrder: 'descend',
       width: 170,
       render: (_, r) => formatDateTime(r.createdAt),
     },
@@ -197,18 +193,9 @@ export function RolesPage() {
             showSizeChanger: true,
             showTotal: (total) => t('common:total', { count: total }),
           }}
-          onChange={(pagination, _f, sorter) => {
+          onChange={(pagination) => {
             setPage(pagination.current ?? 1);
             setPageSize(pagination.pageSize ?? 20);
-            const s = Array.isArray(sorter) ? sorter[0] : sorter;
-            setSort(
-              s?.order
-                ? {
-                    sortBy: s.columnKey === 'name' ? 'name' : 'createdAt',
-                    sortOrder: s.order === 'ascend' ? 'asc' : 'desc',
-                  }
-                : {},
-            );
           }}
         />
       </Card>

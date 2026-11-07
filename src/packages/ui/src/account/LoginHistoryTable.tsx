@@ -1,12 +1,19 @@
 import {
   DesktopOutlined,
   EnvironmentOutlined,
+  InfoCircleOutlined,
   MobileOutlined,
   QuestionCircleOutlined,
   RobotOutlined,
   TabletOutlined,
 } from '@ant-design/icons';
-import type { DeviceInfo, ListLoginHistoryQuery, LoginHistoryDto, Paginated } from '@base/shared';
+import {
+  LOGIN_HISTORY_LIMIT,
+  type DeviceInfo,
+  type ListLoginHistoryQuery,
+  type LoginHistoryDto,
+  type Paginated,
+} from '@base/shared';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { Alert, Table, Tag, Tooltip, Typography, type TableColumnsType } from 'antd';
 import type { TFunction } from 'i18next';
@@ -50,7 +57,8 @@ function renderLocation(row: LoginHistoryDto, t: TFunction, lang: string) {
       </span>
     );
   }
-  if (row.isPrivateIp) return <Text type="secondary">{t('account:loginHistory.localNetwork')}</Text>;
+  if (row.isPrivateIp)
+    return <Text type="secondary">{t('account:loginHistory.localNetwork')}</Text>;
   return <Text type="secondary">{t('account:loginHistory.unknown')}</Text>;
 }
 
@@ -91,12 +99,11 @@ export function LoginHistoryTable({
   queryKey,
   fetcher,
   showApp = true,
-  pageSize: initialPageSize = 10,
+  pageSize = 10,
   size = 'middle',
 }: LoginHistoryTableProps) {
   const { t, i18n } = useTranslation();
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(initialPageSize);
 
   const list = useQuery({
     queryKey: [...queryKey, { page, pageSize }],
@@ -160,26 +167,27 @@ export function LoginHistoryTable({
   }
 
   return (
-    <Table<LoginHistoryDto>
-      className="b-login-history"
-      rowKey="id"
-      size={size}
-      columns={columns}
-      dataSource={list.data?.items}
-      loading={list.isFetching}
-      scroll={{ x: 760 }}
-      locale={{ emptyText: t('account:loginHistory.empty') }}
-      pagination={{
-        current: page,
-        pageSize,
-        total: list.data?.meta.total ?? 0,
-        showSizeChanger: true,
-        hideOnSinglePage: true,
-        onChange: (p, s) => {
-          setPage(s === pageSize ? p : 1);
-          setPageSize(s);
-        },
-      }}
-    />
+    <>
+      <Text type="secondary" className="b-login-history__limit">
+        <InfoCircleOutlined /> {t('account:loginHistory.limitNote', { count: LOGIN_HISTORY_LIMIT })}
+      </Text>
+      <Table<LoginHistoryDto>
+        className="b-login-history"
+        rowKey="id"
+        size={size}
+        columns={columns}
+        dataSource={list.data?.items}
+        loading={list.isFetching}
+        scroll={{ x: 760 }}
+        locale={{ emptyText: t('account:loginHistory.empty') }}
+        pagination={{
+          current: page,
+          pageSize,
+          total: list.data?.meta.total ?? 0,
+          hideOnSinglePage: true,
+          onChange: (p) => setPage(p),
+        }}
+      />
+    </>
   );
 }

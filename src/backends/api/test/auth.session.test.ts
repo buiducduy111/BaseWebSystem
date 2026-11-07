@@ -1,4 +1,5 @@
 import { eq, loginHistories, refreshTokens, users } from '@base/db';
+import { LOGIN_HISTORY_LIMIT } from '@base/shared';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { Client, createTestApp, fail, ok, type TestApp } from './helpers/app';
 import { createUser, DEFAULT_PASSWORD, uniqueEmail } from './helpers/fixtures';
@@ -35,6 +36,32 @@ describe('Auth: đăng nhập & phiên', () => {
         .where(eq(loginHistories.userId, user.id));
       expect(history).toHaveLength(1);
       expect(history[0]!.twoFactorMethod).toBeNull();
+    });
+
+    it(`chỉ giữ ${LOGIN_HISTORY_LIMIT} lần đăng nhập gần nhất, xoá các lần cũ hơn`, async () => {
+      const { user, email, password } = await createUser(t.db);
+      const now = Date.now();
+      await t.db.insert(loginHistories).values(
+        Array.from({ length: LOGIN_HISTORY_LIMIT + 1 }, (_, i) => ({
+          userId: user.id,
+          app: 'user',
+          ipAddress: `10.0.0.${i}`,
+          createdAt: new Date(now - (i + 1) * 60_000),
+        })),
+      );
+      ok(await new Client(t.server).login(email, password));
+
+      const history = await t.db
+        .select()
+        .from(loginHistories)
+        .where(eq(loginHistories.userId, user.id));
+      expect(history).toHaveLength(LOGIN_HISTORY_LIMIT);
+      const ips = history.map((h) => h.ipAddress);
+      // 2 bản ghi cũ nhất (10.0.0.9, 10.0.0.10) bị xoá, lần vừa đăng nhập được giữ
+      expect(ips).not.toContain(`10.0.0.${LOGIN_HISTORY_LIMIT}`);
+      expect(ips).not.toContain(`10.0.0.${LOGIN_HISTORY_LIMIT - 1}`);
+      expect(ips).toContain('10.0.0.0');
+      expect(history.some((h) => h.createdAt.getTime() > now - 60_000)).toBe(true);
     });
 
     it('email không phân biệt hoa thường', async () => {

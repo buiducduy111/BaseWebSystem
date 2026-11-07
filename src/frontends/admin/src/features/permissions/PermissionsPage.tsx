@@ -44,7 +44,6 @@ export function PermissionsPage() {
       key: 'module',
       title: t('columns.module'),
       width: 140,
-      sorter: (a, b) => a.module.localeCompare(b.module),
       render: (_, p) => <Tag color="blue">{moduleLabel(p.module)}</Tag>,
     },
     {
@@ -72,7 +71,6 @@ export function PermissionsPage() {
     {
       key: 'apiPath',
       title: `${t('columns.method')} / ${t('columns.apiPath')}`,
-      sorter: (a, b) => (a.apiPath ?? '').localeCompare(b.apiPath ?? ''),
       render: (_, p) =>
         p.apiPath ? (
           <span className="perm-api">
@@ -103,7 +101,6 @@ export function PermissionsPage() {
       align: 'right',
       width: 110,
       responsive: ['xl'],
-      sorter: (a, b) => a.roleCount - b.roleCount,
       render: (_, p) => p.roleCount,
     },
     {

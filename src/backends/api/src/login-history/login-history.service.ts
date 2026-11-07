@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { count, desc, eq, loginHistories, lt, type LoginHistory } from '@base/db';
-import type { AppName, LoginHistoryDto } from '@base/shared';
+import { and, count, desc, eq, loginHistories, notInArray, type LoginHistory } from '@base/db';
+import { LOGIN_HISTORY_LIMIT, type AppName, type LoginHistoryDto } from '@base/shared';
 import {
   getClientIp,
   getLocationFromHeaders,
@@ -12,11 +12,6 @@ import {
 } from '@base/server-kit';
 import { InjectDb, type Database } from '../core/database';
 import { SettingsService } from '../settings/settings.service';
-
-/** Giữ lịch sử đăng nhập trong bao lâu */
-const RETENTION_DAYS = 180;
-const DAY_MS = 24 * 60 * 60 * 1000;
-const PURGE_INTERVAL_MS = 60 * 60 * 1000;
 
 function toDto(row: LoginHistory): LoginHistoryDto {
   const hasLocation = Boolean(row.countryCode || row.country || row.region || row.city);
@@ -37,8 +32,6 @@ function toDto(row: LoginHistory): LoginHistoryDto {
 
 @Injectable()
 export class LoginHistoryService {
-  private lastPurgeAt = 0;
-
   constructor(
     @InjectDb() private readonly db: Database,
     private readonly settings: SettingsService,
@@ -65,6 +58,7 @@ export class LoginHistoryService {
           ...headerLocation,
         })
         .returning({ id: loginHistories.id });
+      await this.pruneOld(userId);
 
       // Chạy nền, không làm chậm response đăng nhập
       void (async () => {
@@ -72,7 +66,6 @@ export class LoginHistoryService {
         // Mạng Tor: giữ nhãn "Tor", vị trí exit node không có ý nghĩa.
         const complete = Boolean(headerLocation?.city) || headerLocation?.country === 'Tor';
         if (row && ip && !complete && !isPrivateIp(ip)) await this.fillLocation(row.id, ip);
-        await this.purgeOld();
       })().catch((error) => logger.warn('Lỗi tác vụ nền lịch sử đăng nhập', error));
     } catch (error) {
       logger.error('Không ghi được lịch sử đăng nhập', error);
@@ -86,7 +79,7 @@ export class LoginHistoryService {
         .select()
         .from(loginHistories)
         .where(where)
-        .orderBy(desc(loginHistories.createdAt))
+        .orderBy(desc(loginHistories.createdAt), desc(loginHistories.id))
         .limit(pageSize)
         .offset((page - 1) * pageSize),
       this.db.select({ value: count() }).from(loginHistories).where(where),
@@ -102,12 +95,16 @@ export class LoginHistoryService {
     await this.db.update(loginHistories).set(location).where(eq(loginHistories.id, id));
   }
 
-  /** Xoá bản ghi quá hạn, tối đa 1 lần/giờ */
-  private async purgeOld() {
-    if (Date.now() - this.lastPurgeAt < PURGE_INTERVAL_MS) return;
-    this.lastPurgeAt = Date.now();
+  /** Chỉ giữ LOGIN_HISTORY_LIMIT lần đăng nhập gần nhất của user, xoá phần cũ hơn */
+  private async pruneOld(userId: string) {
+    const keep = this.db
+      .select({ id: loginHistories.id })
+      .from(loginHistories)
+      .where(eq(loginHistories.userId, userId))
+      .orderBy(desc(loginHistories.createdAt), desc(loginHistories.id))
+      .limit(LOGIN_HISTORY_LIMIT);
     await this.db
       .delete(loginHistories)
-      .where(lt(loginHistories.createdAt, new Date(Date.now() - RETENTION_DAYS * DAY_MS)));
+      .where(and(eq(loginHistories.userId, userId), notInArray(loginHistories.id, keep)));
   }
 }

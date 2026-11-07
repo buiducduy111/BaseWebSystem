@@ -262,7 +262,9 @@ export const en: Catalog<typeof vi> = {
     },
     loginHistory: {
       description:
-        'Recent sign-ins to your account (kept for 180 days). If you see one you do not recognize, change your password and turn on two-factor authentication.',
+        'Recent sign-ins to your account. If you see one you do not recognize, change your password and turn on two-factor authentication.',
+      limitNote:
+        'Only the {{count}} most recent sign-ins are kept; older ones are deleted automatically.',
       columns: {
         time: 'Time',
         device: 'Device',

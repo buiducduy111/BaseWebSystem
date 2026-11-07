@@ -637,6 +637,11 @@ body {
   display: block;
   margin-bottom: 16px;
 }
+.b-login-history__limit {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
 .b-login-history__device {
   display: flex;
   align-items: center;

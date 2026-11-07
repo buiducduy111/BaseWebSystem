@@ -2,6 +2,9 @@ import { paginationQuerySchema } from './common';
 
 export const listLoginHistoryQuerySchema = paginationQuerySchema;
 
+/** Số lần đăng nhập gần nhất được lưu cho mỗi người dùng (cũ hơn sẽ bị xoá) */
+export const LOGIN_HISTORY_LIMIT = 10;
+
 export interface ListLoginHistoryQuery {
   page?: number;
   pageSize?: number;
