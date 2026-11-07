@@ -22,8 +22,9 @@ export type SettingOptionsSource = 'roles';
 export const SETTING_GROUPS = [
   'general',
   'security',
-  'mail',
+  // Sendify đứng trước SMTP vì là kênh được ưu tiên khi gửi email
   'sendify',
+  'mail',
   'google',
   'captcha',
 ] as const;
@@ -83,19 +84,6 @@ export const SETTING_DEFINITIONS = [
   { name: 'admin_2fa_allow_email', group: 'security', type: 'boolean', defaultValue: 'false' },
   { name: 'login_geoip_enabled', group: 'security', type: 'boolean', defaultValue: 'true' },
 
-  { name: 'smtp_host', group: 'mail', type: 'string', defaultValue: '', example: 'smtp.gmail.com' },
-  { name: 'smtp_port', group: 'mail', type: 'number', defaultValue: '587' },
-  { name: 'smtp_secure', group: 'mail', type: 'boolean', defaultValue: 'false' },
-  { name: 'smtp_user', group: 'mail', type: 'string', defaultValue: '' },
-  { name: 'smtp_password', group: 'mail', type: 'string', defaultValue: '', isSecret: true },
-  {
-    name: 'mail_from',
-    group: 'mail',
-    type: 'string',
-    defaultValue: '',
-    example: '"Base Web" <no-reply@example.com>',
-  },
-
   { name: 'sendify_api_key', group: 'sendify', type: 'string', defaultValue: '', isSecret: true },
   {
     name: 'sendify_from',
@@ -124,6 +112,19 @@ export const SETTING_DEFINITIONS = [
     type: 'string',
     defaultValue: '',
     example: 'RESET_PASSWORD',
+  },
+
+  { name: 'smtp_host', group: 'mail', type: 'string', defaultValue: '', example: 'smtp.gmail.com' },
+  { name: 'smtp_port', group: 'mail', type: 'number', defaultValue: '587' },
+  { name: 'smtp_secure', group: 'mail', type: 'boolean', defaultValue: 'false' },
+  { name: 'smtp_user', group: 'mail', type: 'string', defaultValue: '' },
+  { name: 'smtp_password', group: 'mail', type: 'string', defaultValue: '', isSecret: true },
+  {
+    name: 'mail_from',
+    group: 'mail',
+    type: 'string',
+    defaultValue: '',
+    example: '"Base Web" <no-reply@example.com>',
   },
 
   {

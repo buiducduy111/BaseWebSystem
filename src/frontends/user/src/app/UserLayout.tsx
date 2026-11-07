@@ -3,6 +3,8 @@ import { AppShell, type NavGroup } from '@base/ui';
 import { useTranslation } from 'react-i18next';
 import { NotificationBell } from '@/features/notifications/NotificationBell';
 import { usePublicSettings } from '@/lib/usePublicSettings';
+import logo from '@/assets/logo.svg';
+import logoMini from '@/assets/logo-mini.svg';
 
 export function UserLayout() {
   const { t } = useTranslation('menu');
@@ -23,6 +25,8 @@ export function UserLayout() {
     <AppShell
       brand={siteName}
       brandCollapsed={siteName.charAt(0)}
+      logo={logo}
+      logoCollapsed={logoMini}
       nav={nav}
       variant="user"
       headerExtra={<NotificationBell />}

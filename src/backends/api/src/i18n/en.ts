@@ -94,13 +94,16 @@ export const en: Catalog<typeof vi> & Messages = {
         title: 'Security',
         description: 'Email verification, two-factor authentication and sign-in location.',
       },
+      sendify: {
+        title: 'Email (Sendify)',
+        description:
+          'Preferred email channel: sends with templates created on sendify.vn (email verification, two-factor codes, password reset).',
+        hint: 'Each email type goes through Sendify once the API key and that type’s template are set; a type whose template is empty is sent via SMTP below. If Sendify returns an error, the email is not retried via SMTP.',
+      },
       mail: {
         title: 'Email (SMTP)',
-        description: 'Outgoing mail server. Used when no Sendify template is configured.',
-      },
-      sendify: {
-        title: 'Sendify',
-        description: 'Template emails via sendify.vn (email verification, password reset).',
+        description:
+          'Fallback channel for email types not configured on Sendify. With neither configured, emails are only logged.',
       },
       google: {
         title: 'Google sign-in',
@@ -149,7 +152,8 @@ export const en: Catalog<typeof vi> & Messages = {
       },
       smtp_host: {
         label: 'SMTP host',
-        description: 'Leave empty to only log emails (development).',
+        description:
+          'Leave empty to only log email types not configured on Sendify (handy in development).',
       },
       smtp_port: { label: 'SMTP port', description: 'Usually 587 (STARTTLS) or 465 (SSL).' },
       smtp_secure: { label: 'Use SSL/TLS', description: 'Turn on for port 465.' },
@@ -157,7 +161,7 @@ export const en: Catalog<typeof vi> & Messages = {
       smtp_password: { label: 'SMTP password', description: '' },
       mail_from: { label: 'Sender', description: 'Address shown in the "From" field.' },
       sendify_api_key: { label: 'API key', description: 'Find it in your Sendify dashboard.' },
-      sendify_from: { label: 'Sender', description: 'Leave empty to use the SMTP sender.' },
+      sendify_from: { label: 'Sender', description: 'Leave empty to use the SMTP sender below.' },
       sendify_template_verify_email: {
         label: 'Email verification template',
         description: 'Variables: fullName, verificationCode, expiresInMinutes, appName.',
@@ -168,8 +172,7 @@ export const en: Catalog<typeof vi> & Messages = {
       },
       sendify_template_reset_password: {
         label: 'Password reset template',
-        description:
-          'Variables: fullName, resetLink, expiresInMinutes, appName. Leave empty to send via SMTP.',
+        description: 'Variables: fullName, resetLink, expiresInMinutes, appName.',
       },
       google_client_id: { label: 'Client ID', description: '' },
       google_client_secret: { label: 'Client secret', description: '' },

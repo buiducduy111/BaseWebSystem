@@ -95,13 +95,16 @@ export const vi = {
         title: 'Bảo mật',
         description: 'Xác minh email, xác thực 2 lớp và vị trí đăng nhập.',
       },
+      sendify: {
+        title: 'Email (Sendify)',
+        description:
+          'Kênh gửi email ưu tiên: gửi theo template đã tạo trên sendify.vn (xác minh email, mã xác thực 2 lớp, đặt lại mật khẩu).',
+        hint: 'Mỗi loại email đi qua Sendify khi đã có API key và template của loại đó; template nào để trống thì loại email đó gửi qua SMTP ở mục bên dưới. Sendify báo lỗi thì email không được gửi lại qua SMTP.',
+      },
       mail: {
         title: 'Email (SMTP)',
-        description: 'Máy chủ gửi email. Dùng khi chưa cấu hình template Sendify.',
-      },
-      sendify: {
-        title: 'Sendify',
-        description: 'Gửi email theo template qua sendify.vn (xác minh email, đặt lại mật khẩu).',
+        description:
+          'Kênh dự phòng: dùng cho loại email chưa cấu hình được qua Sendify. Để trống cả hai thì email chỉ được ghi ra log.',
       },
       google: {
         title: 'Đăng nhập Google',
@@ -148,7 +151,8 @@ export const vi = {
       },
       smtp_host: {
         label: 'SMTP host',
-        description: 'Để trống thì email chỉ được ghi ra log (môi trường dev).',
+        description:
+          'Để trống thì loại email chưa cấu hình qua Sendify chỉ được ghi ra log (tiện cho môi trường dev).',
       },
       smtp_port: { label: 'SMTP port', description: 'Thường là 587 (STARTTLS) hoặc 465 (SSL).' },
       smtp_secure: { label: 'Dùng SSL/TLS', description: 'Bật khi dùng cổng 465.' },
@@ -158,7 +162,7 @@ export const vi = {
       sendify_api_key: { label: 'API key', description: 'Lấy tại trang quản lý Sendify.' },
       sendify_from: {
         label: 'Người gửi',
-        description: 'Để trống thì dùng "Người gửi" ở mục SMTP.',
+        description: 'Để trống thì dùng "Người gửi" ở mục SMTP bên dưới.',
       },
       sendify_template_verify_email: {
         label: 'Template xác minh email',
@@ -170,8 +174,7 @@ export const vi = {
       },
       sendify_template_reset_password: {
         label: 'Template đặt lại mật khẩu',
-        description:
-          'Biến: fullName, resetLink, expiresInMinutes, appName. Để trống thì gửi qua SMTP.',
+        description: 'Biến: fullName, resetLink, expiresInMinutes, appName.',
       },
       google_client_id: { label: 'Client ID', description: '' },
       google_client_secret: { label: 'Client secret', description: '' },

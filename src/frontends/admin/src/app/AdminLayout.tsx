@@ -7,6 +7,8 @@ import {
 } from '@ant-design/icons';
 import { AppShell, useAuth, type NavGroup } from '@base/ui';
 import { useTranslation } from 'react-i18next';
+import logo from '@/assets/logo.svg';
+import logoMini from '@/assets/logo-mini.svg';
 
 export function AdminLayout() {
   const { t } = useTranslation('menu');
@@ -35,5 +37,14 @@ export function AdminLayout() {
     },
   ];
 
-  return <AppShell brand={t('brand')} brandCollapsed="BA" nav={nav} variant="admin" />;
+  return (
+    <AppShell
+      brand={t('brand')}
+      brandCollapsed="BA"
+      logo={logo}
+      logoCollapsed={logoMini}
+      nav={nav}
+      variant="admin"
+    />
+  );
 }

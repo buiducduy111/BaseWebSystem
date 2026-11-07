@@ -26,8 +26,13 @@ export type NavItem = {
 export type NavGroup = { key: string; label?: ReactNode; items: NavItem[] };
 
 export interface AppShellProps {
+  /** Tên hệ thống: hiện dạng chữ khi không có logo, và làm alt cho ảnh logo */
   brand: ReactNode;
   brandCollapsed?: ReactNode;
+  /** URL ảnh logo đầy đủ (khi sidebar mở rộng) */
+  logo?: string;
+  /** URL ảnh logo thu nhỏ (khi sidebar thu gọn) */
+  logoCollapsed?: string;
   nav: NavGroup[];
   /**
    * Kiểu sidebar theo hệ thống gốc:
@@ -54,9 +59,29 @@ function readCollapsed() {
   }
 }
 
+function SiderBrand({
+  brand,
+  brandCollapsed,
+  logo,
+  logoCollapsed,
+  collapsed,
+}: Pick<AppShellProps, 'brand' | 'brandCollapsed' | 'logo' | 'logoCollapsed'> & { collapsed: boolean }) {
+  const alt = typeof brand === 'string' ? brand : '';
+  if (collapsed) {
+    return logoCollapsed ? (
+      <img className="b-sider__logo b-sider__logo--mini" src={logoCollapsed} alt={alt} />
+    ) : (
+      <>{brandCollapsed ?? brand}</>
+    );
+  }
+  return logo ? <img className="b-sider__logo" src={logo} alt={alt} /> : <>{brand}</>;
+}
+
 function Sidebar({
   brand,
   brandCollapsed,
+  logo,
+  logoCollapsed,
   groups,
   variant,
   collapsed,
@@ -65,6 +90,8 @@ function Sidebar({
 }: {
   brand: ReactNode;
   brandCollapsed?: ReactNode;
+  logo?: string;
+  logoCollapsed?: string;
   groups: NavGroup[];
   variant: 'admin' | 'user';
   collapsed: boolean;
@@ -81,7 +108,15 @@ function Sidebar({
   return (
     <aside className={cx('b-sider', `b-sider--${variant}`, collapsed && 'b-sider--collapsed')}>
       {showBrand && (
-        <div className="b-sider__brand">{collapsed ? (brandCollapsed ?? brand) : brand}</div>
+        <div className="b-sider__brand">
+          <SiderBrand
+            brand={brand}
+            brandCollapsed={brandCollapsed}
+            logo={logo}
+            logoCollapsed={logoCollapsed}
+            collapsed={collapsed}
+          />
+        </div>
       )}
       <nav className="b-sider__nav">
         {groups.map((group, index) => (
@@ -120,6 +155,8 @@ function Sidebar({
 export function AppShell({
   brand,
   brandCollapsed,
+  logo,
+  logoCollapsed,
   nav,
   variant = 'admin',
   headerExtra,
@@ -161,6 +198,8 @@ export function AppShell({
   const sidebarProps = {
     brand,
     brandCollapsed,
+    logo,
+    logoCollapsed,
     groups,
     variant,
     onNavigate: (path: string) => {

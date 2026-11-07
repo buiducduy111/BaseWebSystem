@@ -36,6 +36,15 @@ describe('Settings: danh sách động & kiểm tra giá trị', () => {
     expect((await t.settings.list('vi')).find((g) => g.name === 'mail')!.hint).toBeNull();
   });
 
+  it('nhóm Sendify đứng trước SMTP và có gợi ý cơ chế ưu tiên', async () => {
+    const groups = await t.settings.list('vi');
+    const names = groups.map((g) => g.name);
+    expect(names.indexOf('sendify')).toBeLessThan(names.indexOf('mail'));
+    const sendify = groups.find((g) => g.name === 'sendify')!;
+    expect(sendify.hint?.text).toBeTruthy();
+    expect(sendify.hint?.code).toEqual([]);
+  });
+
   it('key bí mật không trả giá trị', async () => {
     const secret = await findItem('smtp_password');
     expect(secret.isSecret).toBe(true);

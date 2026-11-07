@@ -327,14 +327,30 @@ body {
   height: 64px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 8px;
+  justify-content: flex-start;
+  padding: 8px 20px;
   border-bottom: 1px solid #e5e7eb;
   font-size: 17px;
   font-weight: 700;
   color: #111827;
   white-space: nowrap;
   overflow: hidden;
+}
+/* Thu gọn: sidebar chỉ rộng 55px nên logo nhỏ đặt giữa */
+.b-sider--collapsed .b-sider__brand {
+  justify-content: center;
+  padding: 8px;
+}
+.b-sider__logo {
+  display: block;
+  height: 36px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+.b-sider__logo--mini {
+  height: 32px;
+  width: 32px;
 }
 .b-sider__nav {
   flex: 1;

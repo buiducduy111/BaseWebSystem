@@ -66,7 +66,7 @@ Kiểu TypeScript: `SettingGroupDto` / `SettingItemDto` / `SettingHintDto` trong
 File: [`src/packages/shared/src/constants/settings.ts`](../src/packages/shared/src/constants/settings.ts)
 
 ```ts
-export const SETTING_GROUPS = ['general', 'security', 'mail', 'sendify', 'google', 'captcha'] as const;
+export const SETTING_GROUPS = ['general', 'security', 'sendify', 'mail', 'google', 'captcha'] as const;
 
 export const SETTING_DEFINITIONS = [
   { name: 'site_name', group: 'general', type: 'string', defaultValue: 'Base Web', isPublic: true },

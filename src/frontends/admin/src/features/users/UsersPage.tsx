@@ -118,32 +118,29 @@ export function UsersPage() {
     {
       key: 'user',
       title: t('columns.user'),
-      render: (_, u) => <UserCell user={u} />,
-      width: 280,
-    },
-    {
-      // Trạng thái chỉ hiện chấm màu: xanh = hoạt động, đỏ = bị khoá
-      key: 'status',
-      width: 48,
-      align: 'center',
+      // Chấm trạng thái nằm cùng cột người dùng: xanh = hoạt động, đỏ = bị khoá
       render: (_, u) => {
         const label = u.isActive ? t('status.active') : t('status.locked');
         return (
-          <Tooltip title={label}>
-            <span
-              role="img"
-              aria-label={label}
-              style={{
-                display: 'inline-block',
-                width: 10,
-                height: 10,
-                borderRadius: '50%',
-                backgroundColor: u.isActive ? 'var(--ant-color-success)' : 'var(--ant-color-error)',
-              }}
-            />
-          </Tooltip>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+            <Tooltip title={label}>
+              <span
+                role="img"
+                aria-label={label}
+                style={{
+                  flex: 'none',
+                  width: 10,
+                  height: 10,
+                  borderRadius: '50%',
+                  backgroundColor: u.isActive ? 'var(--ant-color-success)' : 'var(--ant-color-error)',
+                }}
+              />
+            </Tooltip>
+            <UserCell user={u} />
+          </div>
         );
       },
+      width: 300,
     },
     {
       key: 'role',
