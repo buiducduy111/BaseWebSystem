@@ -21,6 +21,10 @@ export const en: Catalog<typeof vi> & Messages = {
     password: { needDigit: 'Password must contain at least one digit' },
     notification: { targetRequired: 'Choose a recipient or send to everyone' },
     permission: { apiPathFormat: 'URL must start with /' },
+    users: {
+      analyticsInvalidRange: 'Start date must be before end date',
+      analyticsRangeTooLong: 'The date range is too long for the selected granularity',
+    },
   },
   auth: {
     invalidCredentials: 'Incorrect email or password',

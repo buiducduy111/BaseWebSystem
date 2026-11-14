@@ -61,6 +61,7 @@ Lệnh hay dùng: `pnpm dev`, `pnpm dev:api|dev:admin|dev:user`, `pnpm db:genera
 - Gọi API qua `const api = useApi()` + react-query (`useQuery`, `useMutation`, `queryClient.invalidateQueries({ queryKey: ['roles'] })`). Endpoint mới thêm vào `@base/api-client/src/endpoints/*.ts` và đăng ký trong `createApi`.
 - Thông báo: `const { message, modal } = App.useApp()`; `void message.success(...)`; lỗi `message.error(getErrorMessage(err, t))`.
 - Chữ hiển thị qua `useTranslation(['<ns>', 'common'])`; bản dịch ở `src/frontends/<app>/src/locales/{vi,en}.ts` (riêng app) hoặc `src/packages/ui/src/i18n/locales` (dùng chung). Không hard-code chuỗi tiếng Việt/Anh trong JSX.
+- Giao diện theo GPMPay (font Inter 13px, màu chính `#3d97ff`): sửa token ở `@base/ui/src/providers/theme.ts` và CSS chung ở `@base/ui/src/styles.css` (dùng biến `--b-*`), không hard-code màu cũ trong app. Trang danh sách: `<div className="b-page">` + `<PageHeader>` + `<Card>` chứa `b-toolbar` và `<Table>` (pagination có `showTotal`).
 - Ẩn/hiện theo quyền: `useAuth().can('x.y')`, `<Can permission>`, route bọc `<RequirePermission permission>`.
 
 ## 3. Các tác vụ thường gặp

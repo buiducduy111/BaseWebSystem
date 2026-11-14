@@ -48,7 +48,7 @@ export function UserFormDrawer({ open, user, roles, onClose, onSaved }: UserForm
     setSaving(true);
     try {
       if (user) {
-        // Drawer phân quyền: chỉ sửa vai trò và super admin (thông tin cá nhân sửa ở modal thông tin, khóa/mở ở bảng)
+        // Drawer phân quyền: chỉ sửa vai trò và super admin (thông tin cá nhân sửa ở drawer thông tin, khóa/mở ở bảng)
         const input: UpdateUserInput = {
           roleId: values.roleId ?? null,
           ...(me?.isSuperAdmin && !isSelf ? { isSuperAdmin: values.isSuperAdmin } : {}),

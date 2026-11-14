@@ -91,7 +91,76 @@ export interface ResetUserPasswordResult {
 }
 
 /** Họ tên đầy đủ: tiếng Việt "Họ Tên", tiếng Anh "First Last" */
-export function fullName(user: Pick<UserDto, 'firstName' | 'lastName'>, locale: Locale = 'en'): string {
+export function fullName(
+  user: Pick<UserDto, 'firstName' | 'lastName'>,
+  locale: Locale = 'en',
+): string {
   const parts = locale === 'vi' ? [user.lastName, user.firstName] : [user.firstName, user.lastName];
   return parts.filter(Boolean).join(' ');
+}
+
+/** Độ mịn của biểu đồ tăng trưởng người dùng ở tab "Phân tích" */
+export const USER_ANALYTICS_UNITS = ['day', 'month'] as const;
+export type UserAnalyticsUnit = (typeof USER_ANALYTICS_UNITS)[number];
+
+/** Múi giờ mặc định khi client không gửi (hoặc gửi múi giờ không hợp lệ) */
+export const DEFAULT_ANALYTICS_TIME_ZONE = 'Asia/Ho_Chi_Minh';
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+/** Chia theo ngày tối đa 1 năm, theo tháng tối đa 20 năm — chặn request dựng mảng mốc quá lớn */
+const MAX_SPAN_DAYS: Record<UserAnalyticsUnit, number> = { day: 366, month: 366 * 20 };
+
+const isValidTimeZone = (tz: string) => {
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone: tz });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Query thống kê người dùng. Biên khoảng là mốc tuyệt đối (ISO) kèm `timeZone` của người xem,
+ * để backend gom đúng ngày/tháng mà người xem nhìn thấy dù DB lưu UTC.
+ */
+export const userAnalyticsQuerySchema = z
+  .object({
+    from: z.iso.datetime({ offset: true }),
+    to: z.iso.datetime({ offset: true }),
+    timeZone: z
+      .string()
+      .trim()
+      .max(64)
+      .optional()
+      .transform((tz) => (tz && isValidTimeZone(tz) ? tz : DEFAULT_ANALYTICS_TIME_ZONE)),
+    unit: z.enum(USER_ANALYTICS_UNITS).default('day'),
+  })
+  .refine((v) => Date.parse(v.from) <= Date.parse(v.to), {
+    message: 'users.analyticsInvalidRange',
+    path: ['to'],
+  })
+  .refine((v) => Date.parse(v.to) - Date.parse(v.from) <= MAX_SPAN_DAYS[v.unit] * DAY_MS, {
+    message: 'users.analyticsRangeTooLong',
+    path: ['to'],
+  });
+
+export type UserAnalyticsQuery = z.input<typeof userAnalyticsQuerySchema>;
+
+export interface UserAnalyticsPoint {
+  /** `YYYY-MM-DD` (unit = day) hoặc `YYYY-MM` (unit = month), theo `timeZone` */
+  bucket: string;
+  newUsers: number;
+  newVerifiedUsers: number;
+}
+
+export interface UserAnalyticsDto {
+  unit: UserAnalyticsUnit;
+  from: string;
+  to: string;
+  timeZone: string;
+  /** Lũy kế tới `to` */
+  totalUsers: number;
+  /** Lũy kế tới `to`: đã xác minh email */
+  verifiedUsers: number;
+  points: UserAnalyticsPoint[];
 }

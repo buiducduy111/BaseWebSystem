@@ -37,6 +37,7 @@ export const PERMISSION_DEFINITIONS = [
   { key: 'users.resetPassword', module: 'users', ...api('POST', '/users/:id/reset-password') },
   { key: 'users.disableTwoFactor', module: 'users', ...api('POST', '/users/:id/disable-2fa') },
   { key: 'users.loginHistory', module: 'users', ...api('GET', '/users/:id/login-history') },
+  { key: 'users.analytics', module: 'users', ...api('GET', '/users/analytics') },
 
   { key: 'roles.list', module: 'roles', ...api('GET', '/roles') },
   { key: 'roles.view', module: 'roles', ...api('GET', '/roles/:id') },

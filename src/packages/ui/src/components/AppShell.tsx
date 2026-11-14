@@ -5,7 +5,7 @@ import {
   MenuUnfoldOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { Button, Dropdown, Tooltip, Typography, type MenuProps } from 'antd';
+import { Dropdown, Tooltip, Typography, type MenuProps } from 'antd';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Outlet, useLocation, useNavigate } from 'react-router';
@@ -35,9 +35,8 @@ export interface AppShellProps {
   logoCollapsed?: string;
   nav: NavGroup[];
   /**
-   * Kiểu sidebar theo hệ thống gốc:
-   * - admin: tiêu đề nhóm in hoa, mục đang chọn màu primary
-   * - user: nhãn nhóm nhỏ, mục đang chọn nền xám đậm chữ
+   * Gắn class `b-sider--admin` / `b-sider--user` để app tuỳ biến thêm nếu cần;
+   * mặc định cả hai dùng chung giao diện GPMPay.
    */
   variant?: 'admin' | 'user';
   /** Nút bổ sung trên header (ví dụ chuông thông báo) */
@@ -230,17 +229,18 @@ export function AppShell({
 
       <div className="b-shell__body">
         <header className="b-shell__header">
-          <Button
-            type="text"
+          <button
+            type="button"
+            className="b-icon-btn"
             aria-label="menu"
-            icon={
-              isMobile ? <MenuOutlined /> : collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />
-            }
             onClick={() => (isMobile ? setMobileOpen(true) : toggleCollapsed())}
-          />
+          >
+            {isMobile ? <MenuOutlined /> : collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+          </button>
           <div className="b-shell__header-right">
             {headerExtra}
             <LanguageSwitcher />
+            {user && <span className="b-shell__divider" aria-hidden="true" />}
             {user && (
               <Dropdown menu={userMenu} trigger={['click']} placement="bottomRight">
                 <button type="button" className="b-shell__user">

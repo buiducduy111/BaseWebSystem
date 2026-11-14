@@ -15,14 +15,14 @@ export function PageHeader({ icon, title, subtitle, count, actions }: PageHeader
     <div className="b-page-header">
       <div className="b-page-header__main">
         {icon && <div className="b-page-header__icon">{icon}</div>}
-        <div>
+        <div className="b-page-header__text">
           <div className="b-page-header__title-row">
-            <Typography.Title level={3} className="b-page-header__title">
+            <Typography.Title level={1} className="b-page-header__title">
               {title}
             </Typography.Title>
             {count !== undefined && <span className="b-page-header__count">{count}</span>}
           </div>
-          {subtitle && <Typography.Text type="secondary">{subtitle}</Typography.Text>}
+          {subtitle && <span className="b-page-header__subtitle">{subtitle}</span>}
         </div>
       </div>
       {actions && <div className="b-page-header__actions">{actions}</div>}

@@ -5,6 +5,7 @@ import {
   listLoginHistoryQuerySchema,
   listUsersQuerySchema,
   updateUserSchema,
+  userAnalyticsQuerySchema,
   type IdParam,
 } from '@base/shared';
 import type { z } from 'zod';
@@ -18,6 +19,7 @@ import {
   ZodQuery,
 } from '../decorators/customize';
 import { LoginHistoryService } from '../login-history/login-history.service';
+import { UsersAnalyticsService } from './users-analytics.service';
 import { UsersService } from './users.service';
 
 /** Controller: đọc request, validate, gọi service. Không chứa logic nghiệp vụ. */
@@ -26,6 +28,7 @@ export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly loginHistory: LoginHistoryService,
+    private readonly analytics: UsersAnalyticsService,
   ) {}
 
   @RequirePermission('users.list')
@@ -41,6 +44,13 @@ export class UsersController {
     @CurrentPrincipal() principal: Principal,
   ) {
     return this.usersService.create(principal, input);
+  }
+
+  // Khai báo trước `GET :id`, nếu không "analytics" sẽ bị khớp như một id
+  @RequirePermission('users.analytics')
+  @Get('analytics')
+  growth(@ZodQuery(userAnalyticsQuerySchema) query: z.infer<typeof userAnalyticsQuerySchema>) {
+    return this.analytics.growth(query);
   }
 
   @RequirePermission('users.view')
@@ -62,7 +72,10 @@ export class UsersController {
   @RequirePermission('users.resetPassword')
   @HttpCode(HttpStatus.OK)
   @Post(':id/reset-password')
-  resetPassword(@ZodParams(idParamSchema) { id }: IdParam, @CurrentPrincipal() principal: Principal) {
+  resetPassword(
+    @ZodParams(idParamSchema) { id }: IdParam,
+    @CurrentPrincipal() principal: Principal,
+  ) {
     return this.usersService.resetPassword(principal, id);
   }
 

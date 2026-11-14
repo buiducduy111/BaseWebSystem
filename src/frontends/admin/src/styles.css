@@ -137,3 +137,68 @@
 .admin-editable__warning { margin-bottom: 8px; padding: 6px 10px; font-size: 12px; }
 .admin-editable__error { margin-top: 4px; color: var(--ant-color-error); font-size: 12px; }
 .admin-editable__hint { margin-top: 4px; color: var(--b-muted); font-size: 12px; }
+
+/* ---------- Người dùng → tab Phân tích ---------- */
+.users-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+@media (max-width: 900px) {
+  .users-stats { grid-template-columns: 1fr; }
+}
+.users-stat {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px;
+  border-radius: 16px;
+  color: #fff;
+  box-shadow: 0 6px 16px rgb(0 0 0 / 0.08);
+}
+.users-stat--blue { background: linear-gradient(135deg, #3d97ff, var(--b-primary-700)); }
+.users-stat--emerald { background: linear-gradient(135deg, #10b981, #0d9488); }
+.users-stat--amber { background: linear-gradient(135deg, #f59e0b, #f97316); }
+.users-stat__label { font-size: 12px; font-weight: 500; opacity: 0.85; }
+.users-stat__value { margin-top: 8px; font-size: 22px; font-weight: 700; line-height: 1.2; }
+.users-stat__sub { margin-top: 4px; font-size: 12px; opacity: 0.85; }
+.users-stat__icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.15);
+  font-size: 20px;
+}
+.users-chart-legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--b-muted); }
+.users-chart-legend__item { display: inline-flex; align-items: center; gap: 6px; }
+.users-chart-legend__dot { width: 10px; height: 10px; border-radius: 2px; }
+.users-chart-empty {
+  display: grid;
+  place-items: center;
+  height: 320px;
+  color: var(--b-muted);
+}
+.users-chart-tooltip {
+  min-width: 200px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 12px;
+  box-shadow: 0 6px 16px rgb(0 0 0 / 0.08);
+  border: 1px solid var(--b-border);
+}
+.users-chart-tooltip__title { margin-bottom: 8px; font-weight: 500; color: var(--b-heading); }
+.users-chart-tooltip__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 2px 0;
+  color: var(--b-muted);
+}
+.users-chart-tooltip__value { color: var(--b-heading); font-variant-numeric: tabular-nums; }

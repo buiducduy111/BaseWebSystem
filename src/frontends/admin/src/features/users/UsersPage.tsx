@@ -1,6 +1,7 @@
 import {
   CheckCircleOutlined,
   EditOutlined,
+  LineChartOutlined,
   GoogleOutlined,
   LockOutlined,
   MoreOutlined,
@@ -8,6 +9,7 @@ import {
   SafetyOutlined,
   TeamOutlined,
   UnlockOutlined,
+  UnorderedListOutlined,
   UserSwitchOutlined,
 } from '@ant-design/icons';
 import type { ListUsersQuery, UserDto } from '@base/shared';
@@ -30,6 +32,7 @@ import {
   Select,
   Space,
   Table,
+  Tabs,
   Tag,
   Tooltip,
   Typography,
@@ -38,8 +41,10 @@ import {
 } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router';
+import { UsersAnalyticsTab } from './UsersAnalyticsTab';
 import { UserFormDrawer } from './UserFormDrawer';
-import { UserInfoModal } from './UserInfoModal';
+import { UserInfoDrawer } from './UserInfoDrawer';
 
 export function UsersPage() {
   const { t } = useTranslation(['users', 'common']);
@@ -57,6 +62,21 @@ export function UsersPage() {
   const [drawer, setDrawer] = useState<{ open: boolean; user?: UserDto }>({ open: false });
   const [viewing, setViewing] = useState<UserDto | null>(null);
   const debouncedSearch = useDebouncedValue(search.trim(), 400);
+  // Tab đang mở lưu trên URL (?tab=analytics) để tải lại / chia sẻ link vẫn giữ đúng tab
+  const [searchParams, setSearchParams] = useSearchParams();
+  const canViewAnalytics = can('users.analytics');
+  const activeTab =
+    canViewAnalytics && searchParams.get('tab') === 'analytics' ? 'analytics' : 'list';
+  const changeTab = (key: string) =>
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (key === 'analytics') next.set('tab', key);
+        else next.delete('tab');
+        return next;
+      },
+      { replace: true },
+    );
 
   const query: ListUsersQuery = {
     page,
@@ -103,14 +123,19 @@ export function UsersPage() {
   const canEditTarget = (u: UserDto) => !u.isSuperAdmin || Boolean(me?.isSuperAdmin);
   const viewingEditable = viewing ? canEditTarget(viewing) : false;
 
-  // Đặt lại mật khẩu nằm trong modal thông tin người dùng; không cho xóa user ở giao diện
+  // Đặt lại mật khẩu nằm trong drawer thông tin người dùng; không cho xóa user ở giao diện
   const rowMenu = (u: UserDto): MenuProps => ({
     items: [
       can('users.disableTwoFactor') &&
-        u.twoFactorEnabled && { key: '2fa', icon: <SafetyOutlined />, label: t('actions.disable2fa') },
+        u.twoFactorEnabled && {
+          key: '2fa',
+          icon: <SafetyOutlined />,
+          label: t('actions.disable2fa'),
+        },
     ].filter(Boolean) as MenuProps['items'],
     onClick: ({ key }) => {
-      if (key === '2fa') confirm(t('confirm.disable2fa', { email: u.email }), () => disable2fa.mutateAsync(u), true);
+      if (key === '2fa')
+        confirm(t('confirm.disable2fa', { email: u.email }), () => disable2fa.mutateAsync(u), true);
     },
   });
 
@@ -132,7 +157,9 @@ export function UsersPage() {
                   width: 10,
                   height: 10,
                   borderRadius: '50%',
-                  backgroundColor: u.isActive ? 'var(--ant-color-success)' : 'var(--ant-color-error)',
+                  backgroundColor: u.isActive
+                    ? 'var(--ant-color-success)'
+                    : 'var(--ant-color-error)',
                 }}
               />
             </Tooltip>
@@ -148,8 +175,10 @@ export function UsersPage() {
       render: (_, u) => (
         <Space size={4} wrap>
           {u.isSuperAdmin && <Tag color="volcano">{t('superAdmin')}</Tag>}
-          {u.role ? <Tag color="geekblue">{u.role.name}</Tag> : !u.isSuperAdmin && (
-            <Typography.Text type="secondary">{t('noRole')}</Typography.Text>
+          {u.role ? (
+            <Tag color="geekblue">{u.role.name}</Tag>
+          ) : (
+            !u.isSuperAdmin && <Typography.Text type="secondary">{t('noRole')}</Typography.Text>
           )}
         </Space>
       ),
@@ -230,6 +259,96 @@ export function UsersPage() {
     },
   ];
 
+  const listCard = (
+    <Card>
+      <div className="b-toolbar">
+        <Input.Search
+          allowClear
+          className="b-toolbar__search"
+          placeholder={t('searchPlaceholder')}
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+        />
+        <Select
+          allowClear
+          style={{ width: 180 }}
+          placeholder={t('statusAll')}
+          value={status}
+          onChange={(v) => {
+            setStatus(v);
+            setPage(1);
+          }}
+          options={[
+            { value: 'active', label: t('status.active') },
+            { value: 'locked', label: t('status.locked') },
+          ]}
+        />
+        <Select
+          allowClear
+          style={{ width: 200 }}
+          placeholder={t('emailVerificationAll')}
+          value={emailVerification}
+          onChange={(v) => {
+            setEmailVerification(v);
+            setPage(1);
+          }}
+          options={[
+            { value: 'verified', label: t('emailFilter.verified') },
+            { value: 'unverified', label: t('emailFilter.unverified') },
+          ]}
+        />
+        <Select
+          allowClear
+          showSearch={{ optionFilterProp: 'label' }}
+          style={{ width: 200 }}
+          placeholder={t('roleAll')}
+          value={roleId}
+          loading={roles.isPending}
+          onChange={(v) => {
+            setRoleId(v);
+            setPage(1);
+          }}
+          options={roles.data?.items.map((r) => ({ value: r.id, label: r.name }))}
+        />
+        {filtersActive > 0 && (
+          <Button
+            type="link"
+            onClick={() => {
+              setSearch('');
+              setStatus(undefined);
+              setEmailVerification(undefined);
+              setRoleId(undefined);
+              setPage(1);
+            }}
+          >
+            {t('common:clearFilters', { count: filtersActive })}
+          </Button>
+        )}
+      </div>
+      <Table<UserDto>
+        rowKey="id"
+        columns={columns}
+        dataSource={users.data?.items}
+        loading={users.isFetching}
+        scroll={{ x: 1000 }}
+        pagination={{
+          current: page,
+          pageSize,
+          total: users.data?.meta.total,
+          showSizeChanger: true,
+          showTotal: (total) => t('common:total', { count: total }),
+        }}
+        onChange={(pagination) => {
+          setPage(pagination.current ?? 1);
+          setPageSize(pagination.pageSize ?? 20);
+        }}
+      />
+    </Card>
+  );
+
   return (
     <div className="b-page">
       <PageHeader
@@ -239,99 +358,38 @@ export function UsersPage() {
         count={users.data?.meta.total}
         actions={
           can('users.create') && (
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => setDrawer({ open: true })}>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setDrawer({ open: true })}
+            >
               {t('add')}
             </Button>
           )
         }
       />
-      <Card>
-        <div className="b-toolbar">
-          <Input.Search
-            allowClear
-            className="b-toolbar__search"
-            placeholder={t('searchPlaceholder')}
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-          />
-          <Select
-            allowClear
-            style={{ width: 180 }}
-            placeholder={t('statusAll')}
-            value={status}
-            onChange={(v) => {
-              setStatus(v);
-              setPage(1);
-            }}
-            options={[
-              { value: 'active', label: t('status.active') },
-              { value: 'locked', label: t('status.locked') },
-            ]}
-          />
-          <Select
-            allowClear
-            style={{ width: 200 }}
-            placeholder={t('emailVerificationAll')}
-            value={emailVerification}
-            onChange={(v) => {
-              setEmailVerification(v);
-              setPage(1);
-            }}
-            options={[
-              { value: 'verified', label: t('emailFilter.verified') },
-              { value: 'unverified', label: t('emailFilter.unverified') },
-            ]}
-          />
-          <Select
-            allowClear
-            showSearch={{ optionFilterProp: 'label' }}
-            style={{ width: 200 }}
-            placeholder={t('roleAll')}
-            value={roleId}
-            loading={roles.isPending}
-            onChange={(v) => {
-              setRoleId(v);
-              setPage(1);
-            }}
-            options={roles.data?.items.map((r) => ({ value: r.id, label: r.name }))}
-          />
-          {filtersActive > 0 && (
-            <Button
-              type="link"
-              onClick={() => {
-                setSearch('');
-                setStatus(undefined);
-                setEmailVerification(undefined);
-                setRoleId(undefined);
-                setPage(1);
-              }}
-            >
-              {t('common:clearFilters', { count: filtersActive })}
-            </Button>
-          )}
-        </div>
-        <Table<UserDto>
-          rowKey="id"
-          columns={columns}
-          dataSource={users.data?.items}
-          loading={users.isFetching}
-          scroll={{ x: 1000 }}
-          pagination={{
-            current: page,
-            pageSize,
-            total: users.data?.meta.total,
-            showSizeChanger: true,
-            showTotal: (total) => t('common:total', { count: total }),
-          }}
-          onChange={(pagination) => {
-            setPage(pagination.current ?? 1);
-            setPageSize(pagination.pageSize ?? 20);
-          }}
+      {canViewAnalytics ? (
+        <Tabs
+          activeKey={activeTab}
+          onChange={changeTab}
+          items={[
+            {
+              key: 'list',
+              label: t('tabs.list'),
+              icon: <UnorderedListOutlined />,
+              children: listCard,
+            },
+            {
+              key: 'analytics',
+              label: t('tabs.analytics'),
+              icon: <LineChartOutlined />,
+              children: <UsersAnalyticsTab />,
+            },
+          ]}
         />
-      </Card>
+      ) : (
+        listCard
+      )}
       <UserFormDrawer
         open={drawer.open}
         user={drawer.user}
@@ -340,7 +398,7 @@ export function UsersPage() {
         onClose={() => setDrawer((d) => ({ ...d, open: false }))}
         onSaved={() => void invalidate()}
       />
-      <UserInfoModal
+      <UserInfoDrawer
         open={Boolean(viewing)}
         user={viewing}
         canEdit={viewingEditable && can('users.update')}

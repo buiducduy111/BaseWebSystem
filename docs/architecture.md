@@ -153,7 +153,12 @@ Module không có controller: `mail/` (gửi email), `email-verification/`, `log
 - Tổ chức theo feature: `src/features/<feature>/` gồm page, component, hook react-query.
 - Gọi API qua `useApi()` (SDK) + `@tanstack/react-query`.
 - Phần dùng chung giữa 2 app (layout, đăng nhập, trang tài khoản, i18n chung) đặt ở `@base/ui`.
-- Sidebar theo giao diện hệ thống gốc: `<AppShell variant="admin" | "user">` (rộng 260px, thu gọn 55px, mobile trượt từ trái). Logo truyền qua prop `logo` (sidebar mở rộng) và `logoCollapsed` (thu gọn); thiếu thì hiện chữ `brand` / `brandCollapsed`. File logo của từng app: `src/frontends/<app>/src/assets/logo.svg` và `logo-mini.svg` (thay file là đổi logo).
+- Giao diện theo GPMPay, gom ở `@base/ui` nên áp cho cả 2 app:
+  - **Font**: Inter (Google Fonts, nạp trong `index.html` của từng app), cỡ gốc 13px.
+  - **Theme antd**: `packages/ui/src/providers/theme.ts` (`baseTheme`) — màu chính `#3d97ff`, chữ `#32353f`/`#121421`, viền `#ececef`, nền `#f9f9f9`, control cao 34px, bo góc 6/8px; có token riêng cho Button, Table, Card, Modal, Tabs, Tag. App muốn đổi màu thì truyền `theme` vào `AppProviders`.
+  - **CSS dùng chung**: `packages/ui/src/styles.css` — biến màu `--b-*` ở `:root` (`--b-primary`, `--b-hairline`, `--b-text`…), skin cho Table (kẻ đứt nét, tiêu đề in đậm) và Pagination (nút 28px, trang đang chọn nền xanh, tổng số bản ghi bên trái), Card viền mảnh, nút bo 8px.
+  - **Page header**: `<PageHeader icon title subtitle count actions />` — tiêu đề 18px, icon trong ô 40px nền xanh nhạt, `count` hiện dạng badge.
+- Sidebar: `<AppShell variant="admin" | "user">` (rộng 224px, thu gọn còn rail 64px, mobile trượt từ trái). Hai `variant` dùng chung một kiểu: tiêu đề nhóm in hoa 11px, mục đang chọn chữ xanh đậm và có vạch xanh ở mép trái; `variant` chỉ thêm class `b-sider--admin` / `b-sider--user` để app tuỳ biến thêm nếu cần. Header cao 64px (mobile 56px), nút icon dùng class `b-icon-btn`. Logo truyền qua prop `logo` (sidebar mở rộng) và `logoCollapsed` (thu gọn); thiếu thì hiện chữ `brand` / `brandCollapsed`. File logo của từng app: `src/frontends/<app>/src/assets/logo.svg` và `logo-mini.svg` (thay file là đổi logo).
 - Lint: `pnpm lint` (cấu hình ở `eslint.config.mjs`), bao gồm các rule React Compiler của `eslint-plugin-react-hooks` v7 — tránh gọi setState đồng bộ trong effect và đọc/ghi ref trong lúc render.
 
 ## Thêm backend mới

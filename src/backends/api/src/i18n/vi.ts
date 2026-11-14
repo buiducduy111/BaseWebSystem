@@ -17,6 +17,10 @@ export const vi = {
     password: { needDigit: 'Mật khẩu phải chứa ít nhất 1 chữ số' },
     notification: { targetRequired: 'Chọn người nhận hoặc gửi toàn hệ thống' },
     permission: { apiPathFormat: 'URL phải bắt đầu bằng /' },
+    users: {
+      analyticsInvalidRange: 'Ngày bắt đầu phải trước ngày kết thúc',
+      analyticsRangeTooLong: 'Khoảng thời gian quá dài so với độ mịn đã chọn',
+    },
   },
   auth: {
     invalidCredentials: 'Email hoặc mật khẩu không đúng',
