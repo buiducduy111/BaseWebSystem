@@ -1,10 +1,9 @@
 import { BellOutlined, SafetyCertificateOutlined, UserOutlined } from '@ant-design/icons';
-import { displayName, PageHeader, useAuth } from '@base/ui';
+import { displayName, PageHeader, useAuth, useUnreadCount } from '@base/ui';
 import { Card, Col, Row, Statistic, Typography } from 'antd';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
-import { useUnreadCount } from '@/features/notifications/useNotifications';
 
 function ActionCard({
   icon,

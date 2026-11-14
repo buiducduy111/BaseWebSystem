@@ -30,6 +30,16 @@ export { LanguageSwitcher } from './components/LanguageSwitcher';
 export { PageHeader, SettingsSection } from './components/PageHeader';
 export { UserAvatar, UserCell } from './components/UserAvatar';
 
+// Notifications
+export { NotificationBell, type NotificationBellProps } from './notifications/NotificationBell';
+export { NotificationItem } from './notifications/NotificationItem';
+export { NotificationsPage } from './notifications/NotificationsPage';
+export {
+  useMarkNotifications,
+  useNotificationList,
+  useUnreadCount,
+} from './notifications/useNotifications';
+
 // Hooks & utils
 export * from './hooks';
 export * from './utils';

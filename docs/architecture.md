@@ -95,8 +95,8 @@ Chỉ các **key hệ thống** khai báo ở `src/packages/shared/src/constants
 
 - Bảng `notifications` (thông báo riêng 1 user: `userId`; hoặc toàn hệ thống: `isGlobal = true`) và `notification_reads` (ai đã đọc thông báo nào). Loại: `info` · `success` · `warning` · `error`.
 - **Thông báo hệ thống**: `NotificationsService.notifyUser(user, key)` lấy tiêu đề/nội dung từ `notifications.<key>.title|message` trong i18n backend, dịch theo `users.lang` lúc gửi. Đang dùng cho: chào mừng khi đăng ký (`welcome`), đổi / đặt lại mật khẩu (`passwordChanged`), bật / tắt 2FA, thêm / gỡ phương thức 2FA.
-- API của người dùng: `GET /me/notifications` (phân trang, `unreadOnly`), `GET /me/notifications/unread-count`, `POST /me/notifications/read { ids }`, `POST /me/notifications/read-all`. UI: chuông + trang `/notifications` ở app user (`src/frontends/user/src/features/notifications`).
-- Admin gửi thông báo: `POST /notifications` (quyền `notifications.send`, gửi cho 1 user hoặc toàn hệ thống), đã có trong SDK (`api.notifications.send`) nhưng **trang admin chưa có giao diện**.
+- API của người dùng: `GET /me/notifications` (phân trang, `unreadOnly`), `GET /me/notifications/unread-count`, `POST /me/notifications/read { ids }`, `POST /me/notifications/read-all`. UI dùng chung ở `@base/ui` (`src/packages/ui/src/notifications`), áp cho **cả 2 app**: `NotificationBell` gắn vào header qua `AppShell` prop `headerExtra` (badge chưa đọc, kiểm tra lại mỗi 60 giây khi tab đang mở, chuông rung + toast khi có thông báo mới, popover 10 thông báo mới nhất lọc Tất cả / Chưa đọc) và `NotificationsPage` cho route `/notifications`. Hook `useUnreadCount` / `useNotificationList` / `useMarkNotifications` cũng export từ `@base/ui`; bản dịch nằm ở namespace `notifications` trong i18n chung.
+- Admin gửi thông báo: `POST /notifications` (quyền `notifications.send`, gửi cho 1 user hoặc toàn hệ thống), đã có trong SDK (`api.notifications.send`) nhưng **trang admin chưa có giao diện gửi**.
 
 ## Dashboard, avatar, health
 
@@ -152,7 +152,7 @@ Module không có controller: `mail/` (gửi email), `email-verification/`, `log
 
 - Tổ chức theo feature: `src/features/<feature>/` gồm page, component, hook react-query.
 - Gọi API qua `useApi()` (SDK) + `@tanstack/react-query`.
-- Phần dùng chung giữa 2 app (layout, đăng nhập, trang tài khoản, i18n chung) đặt ở `@base/ui`.
+- Phần dùng chung giữa 2 app (layout, đăng nhập, trang tài khoản, thông báo, i18n chung) đặt ở `@base/ui`.
 - Giao diện theo GPMPay, gom ở `@base/ui` nên áp cho cả 2 app:
   - **Font**: Inter (Google Fonts, nạp trong `index.html` của từng app), cỡ gốc 13px.
   - **Theme antd**: `packages/ui/src/providers/theme.ts` (`baseTheme`) — màu chính `#3d97ff`, chữ `#32353f`/`#121421`, viền `#ececef`, nền `#f9f9f9`, control cao 34px, bo góc 6/8px; có token riêng cho Button, Table, Card, Modal, Tabs, Tag. App muốn đổi màu thì truyền `theme` vào `AppProviders`.

@@ -88,6 +88,8 @@ export const en: Catalog<typeof vi> & Messages = {
     nameExists: 'Role name already exists',
     inUse: 'Role is assigned to {{count}} user(s) and cannot be deleted',
     systemRole: 'System roles cannot be deleted, renamed or deactivated',
+    adminPermissionMissing: 'The admin.access permission is not in the database yet, sync permissions first',
+    adminAccessForbidden: 'You need the assign-permissions right to change admin access of a role',
   },
   settings: {
     invalidValue: 'Invalid value for "{{name}}"',

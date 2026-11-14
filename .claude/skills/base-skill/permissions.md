@@ -71,6 +71,8 @@ Key đã xoá khỏi code nhưng còn trong DB bị lọc bỏ → mất tác d�
 
 Quyền vào trang admin: `canAccessAdmin(principal)` = `principal.can('admin.access')`, được kiểm tra ở đăng nhập/2FA/Google/refresh khi `x-app: admin` — không cần thêm vào từng route admin.
 
+Cờ role `adminAccess` (switch "Được vào trang quản trị", tag "Admin") **không phải cột DB**: `RoleDto.adminAccess` suy ra từ quyền `admin.access`; `POST/PATCH /roles` nhận `adminAccess?: boolean` → `RolesService.setAdminAccess` thêm/xoá đúng quyền đó, và controller đòi thêm `roles.assignPermissions` (`roles.adminAccessForbidden`). Đừng thêm cột `canAccessAdmin` riêng — sẽ thành hai nguồn sự thật.
+
 ## Mẫu controller
 
 ```ts

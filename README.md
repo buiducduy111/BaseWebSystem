@@ -11,9 +11,9 @@ Monorepo khung cho hệ thống quản lý: backend **NestJS** (chỉ API), 2 fr
 | Quên / đặt lại mật khẩu | Có | Có |
 | Tài khoản | Họ, tên, avatar, xác minh email, đổi mật khẩu, quản lý 2FA (nhiều phương thức, nhiều passkey, phương thức mặc định) | Như admin |
 | Lịch sử đăng nhập | Của chính mình (trang tài khoản) + xem của từng người dùng (modal thông tin, quyền `users.loginHistory`) | Của chính mình: thời gian, thiết bị, IP, vị trí |
-| Khác | Dashboard (biểu đồ người dùng mới theo tháng), quản lý người dùng (sửa tại chỗ, đặt lại mật khẩu, tắt 2FA giúp), vai trò & phân quyền, quyền theo API (xem/sửa URL, đồng bộ), cài đặt hệ thống (form sinh tự động từ API, import/export JSON) | Trang chủ, thông báo (chuông + trang danh sách) |
+| Khác | Dashboard (biểu đồ người dùng mới theo tháng), quản lý người dùng (sửa tại chỗ, đặt lại mật khẩu, tắt 2FA giúp), vai trò & phân quyền (sao chép vai trò kèm toàn bộ quyền), quyền theo API (xem/sửa URL, đồng bộ), cài đặt hệ thống (form sinh tự động từ API, import/export JSON), thông báo (chuông + trang danh sách) | Trang chủ, thông báo (chuông + trang danh sách) |
 
-Lịch sử đăng nhập chỉ giữ **10 lần gần nhất** của mỗi người dùng (`LOGIN_HISTORY_LIMIT`). Thông báo hệ thống (chào mừng, đổi mật khẩu, thay đổi 2FA) tự gửi theo ngôn ngữ của người dùng; API gửi thông báo từ admin (`POST /notifications`) đã có nhưng trang admin chưa có giao diện.
+Lịch sử đăng nhập chỉ giữ **10 lần gần nhất** của mỗi người dùng (`LOGIN_HISTORY_LIMIT`). Thông báo hệ thống (chào mừng, đổi mật khẩu, thay đổi 2FA) tự gửi theo ngôn ngữ của người dùng; Cả 2 app đều có chuông thông báo trên header (badge chưa đọc, lọc Tất cả / Chưa đọc) và trang `/notifications`. API gửi thông báo từ admin (`POST /notifications`) đã có nhưng trang admin chưa có giao diện gửi.
 
 ## Cấu trúc
 

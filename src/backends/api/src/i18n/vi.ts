@@ -85,6 +85,9 @@ export const vi = {
     nameExists: 'Tên role đã tồn tại',
     inUse: 'Role đang được gán cho {{count}} người dùng, không thể xóa',
     systemRole: 'Không thể xóa, đổi tên hoặc vô hiệu hóa role hệ thống',
+    adminPermissionMissing:
+      'Quyền admin.access chưa có trong cơ sở dữ liệu, hãy đồng bộ quyền trước',
+    adminAccessForbidden: 'Bạn cần quyền phân quyền để đổi quyền vào trang quản trị của role',
   },
   settings: {
     invalidValue: 'Giá trị của "{{name}}" không hợp lệ',

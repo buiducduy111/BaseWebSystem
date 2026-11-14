@@ -2,6 +2,7 @@ import {
   AccountPage,
   ErrorPage,
   GuestOnly,
+  NotificationsPage,
   RequireAuth,
   RequirePermission,
 } from '@base/ui';
@@ -32,6 +33,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <DashboardPage /> },
           { path: 'profile', element: <AccountPage /> },
+          { path: 'notifications', element: <NotificationsPage /> },
           {
             path: 'users',
             element: (

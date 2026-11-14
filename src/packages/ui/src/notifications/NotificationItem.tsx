@@ -5,9 +5,9 @@ import {
   InfoCircleFilled,
 } from '@ant-design/icons';
 import type { NotificationDto, NotificationType } from '@base/shared';
-import { formatDateTime, fromNow } from '@base/ui';
 import { Tag, Tooltip, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { formatDateTime, fromNow } from '../utils';
 
 const ICONS: Record<NotificationType, React.ReactNode> = {
   info: <InfoCircleFilled />,

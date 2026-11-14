@@ -136,6 +136,14 @@ Các ràng buộc nghiệp vụ hiện có:
 - refresh token (`session.service.ts`) → bị thu quyền thì phiên admin không làm mới được nữa;
 - setting `require_2fa_admin` áp dụng cho mọi tài khoản có `admin.access` (`account.service.ts`).
 
+**Cờ "Được vào trang quản trị" của role (`adminAccess`).** Không phải cột riêng trong bảng `roles` mà là cách hiển thị/bật tắt nhanh quyền `admin.access` — vẫn chỉ có một nguồn sự thật nên logic đăng nhập ở trên không đổi.
+
+- `RoleDto.adminAccess` = role có `admin.access` trong `role_permissions` (tính ở `RolesService.hydrate`).
+- `POST /roles` và `PATCH /roles/:id` nhận `adminAccess?: boolean` (bỏ trống = không đụng tới). Service gọi `setAdminAccess` thêm/xoá đúng dòng `admin.access` trong cùng transaction với việc tạo/sửa role; khi sao chép role, cờ được áp **sau** bước copy nên giá trị trong form ghi đè quyền của role nguồn.
+- Gửi `adminAccess` cần thêm quyền `roles.assignPermissions` (ngoài `roles.create` / `roles.update`), thiếu → `403 roles.adminAccessForbidden` (`roles.controller.ts`). Form admin chỉ gửi trường này khi người dùng có quyền đó và (khi sửa) giá trị thực sự thay đổi, nên sửa tên/mô tả không bị chặn.
+- Bật cờ khi `admin.access` chưa được đồng bộ vào DB → `400 roles.adminPermissionMissing`; tắt thì bỏ qua.
+- Bỏ tick `admin.access` trong drawer **Phân quyền** cũng tắt cờ (và ngược lại) — hai nơi cùng sửa một dữ liệu. Hiện không chặn tắt cờ trên role hệ thống `Administrator`.
+
 ## 6. Key, method và URL: cái nào thật sự được kiểm tra?
 
 Backend **chỉ so khớp theo `key`** khai báo trong `@RequirePermission`. Các cột `method` / `apiPath` trong DB **không** tham gia việc chặn request: chúng là thông tin mô tả để admin biết quyền đó ứng với API nào.
@@ -177,11 +185,13 @@ can('permissions.syncPreview') && can('permissions.sync') && <Button>...</Button
 
 | Trang | Chức năng | Quyền |
 | ----- | --------- | ----- |
-| Admin → Vai trò | CRUD role; drawer **Phân quyền** chọn quyền theo module (chọn cả module / chọn tất cả) | `roles.*`, gán quyền: `roles.assignPermissions` |
+| Admin → Vai trò | CRUD role; switch **Được vào trang quản trị** trong form (= quyền `admin.access`, xem [§5.4](#54-quyền-vào-trang-admin-adminaccess)) và tag "Admin" trên dòng; **sao chép role** (nút sao chép trên dòng hoặc chế độ "Sao chép từ vai trò khác" khi thêm, cờ admin mặc định theo role nguồn); drawer **Phân quyền** chọn quyền theo module (chọn cả module / chọn tất cả) | `roles.*`, gán quyền: `roles.assignPermissions` |
 | Admin → Quyền | Danh sách quyền trong DB, lọc theo module, sửa module / loại / method / URL / mô tả, nhãn "Khác với code" và "Không còn trong code", nút **Đồng bộ** | `permissions.list`, `permissions.update`, `permissions.syncPreview` + `permissions.sync` |
 | Admin → Người dùng | Gán role, bật super admin (chỉ super admin) | `users.*` |
 
 Lưu gán quyền (`PUT /roles/:id/permissions`) **thay toàn bộ** quyền của role bằng danh sách gửi lên, trong 1 transaction. Key gửi lên phải nằm trong `PERMISSION_KEYS` (zod kiểm tra); key hợp lệ nhưng **chưa có trong DB** (chưa đồng bộ) sẽ bị bỏ qua — vì vậy phải đồng bộ trước khi gán quyền mới.
+
+Sao chép role dùng chung API tạo role: `POST /roles` kèm `cloneFromRoleId` (uuid, chỉ có ở `createRoleSchema`, không có trong `updateRoleSchema`). Service kiểm tra role nguồn tồn tại (không thì `roles.notFound`), rồi tạo role mới và copy toàn bộ dòng `role_permissions` của role nguồn trong 1 transaction. Role mới luôn có `isSystem = false`. API chỉ yêu cầu `roles.create` (giống GPMPay) — tức người có quyền tạo role có thể nhân bản role nhiều quyền như `Administrator` dù không có `roles.assignPermissions`; nếu cần chặt hơn thì kiểm tra thêm quyền này khi có `cloneFromRoleId`.
 
 ## 9. Thêm quyền mới
 

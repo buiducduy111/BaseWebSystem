@@ -7,10 +7,28 @@ import {
   updateRoleSchema,
   type IdParam,
 } from '@base/shared';
+import { forbidden } from '@base/server-kit';
 import type { z } from 'zod';
+import type { Principal } from '../auth/principal';
 import { paginated } from '../core/transform.interceptor';
-import { RequirePermission, ZodBody, ZodParams, ZodQuery } from '../decorators/customize';
+import {
+  CurrentPrincipal,
+  RequirePermission,
+  ZodBody,
+  ZodParams,
+  ZodQuery,
+} from '../decorators/customize';
 import { RolesService } from './roles.service';
+
+/**
+ * Cờ adminAccess thực chất là gán quyền `admin.access`, nên ngoài roles.create/roles.update
+ * còn cần quyền phân quyền — tránh người chỉ được sửa role tự mở cửa vào trang admin.
+ */
+function assertCanSetAdminAccess(adminAccess: boolean | undefined, principal: Principal) {
+  if (adminAccess !== undefined && !principal.can('roles.assignPermissions')) {
+    throw forbidden('roles.adminAccessForbidden');
+  }
+}
 
 @Controller('roles')
 export class RolesController {
@@ -25,7 +43,11 @@ export class RolesController {
 
   @RequirePermission('roles.create')
   @Post()
-  create(@ZodBody(createRoleSchema) input: z.infer<typeof createRoleSchema>) {
+  create(
+    @ZodBody(createRoleSchema) input: z.infer<typeof createRoleSchema>,
+    @CurrentPrincipal() principal: Principal,
+  ) {
+    assertCanSetAdminAccess(input.adminAccess, principal);
     return this.rolesService.create(input);
   }
 
@@ -40,7 +62,9 @@ export class RolesController {
   update(
     @ZodParams(idParamSchema) { id }: IdParam,
     @ZodBody(updateRoleSchema) input: z.infer<typeof updateRoleSchema>,
+    @CurrentPrincipal() principal: Principal,
   ) {
+    assertCanSetAdminAccess(input.adminAccess, principal);
     return this.rolesService.update(id, input);
   }
 

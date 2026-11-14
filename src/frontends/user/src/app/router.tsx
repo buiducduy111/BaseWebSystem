@@ -1,6 +1,5 @@
-import { AccountPage, ErrorPage, GuestOnly, RequireAuth } from '@base/ui';
+import { AccountPage, ErrorPage, GuestOnly, NotificationsPage, RequireAuth } from '@base/ui';
 import { createBrowserRouter } from 'react-router';
-import { NotificationsPage } from '@/features/notifications/NotificationsPage';
 import {
   ForgotPasswordPage,
   LoginPage,

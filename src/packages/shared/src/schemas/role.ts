@@ -22,9 +22,16 @@ export const createRoleSchema = z.object({
   name: z.string().trim().min(1).max(100),
   description: z.string().trim().max(1000).nullable().optional(),
   isActive: z.boolean().default(true),
+  /**
+   * Cờ "được vào trang admin" — thực chất bật/tắt quyền `admin.access` của role.
+   * Bỏ trống = giữ nguyên (khi sửa) / theo role nguồn hoặc không có (khi tạo).
+   */
+  adminAccess: z.boolean().optional(),
+  /** Tạo role mới bằng cách sao chép toàn bộ quyền từ role này */
+  cloneFromRoleId: z.uuid().optional(),
 });
 
-export const updateRoleSchema = createRoleSchema.partial();
+export const updateRoleSchema = createRoleSchema.omit({ cloneFromRoleId: true }).partial();
 
 export const assignPermissionsSchema = z.object({
   permissions: z.array(z.enum(PERMISSION_KEYS as [PermissionKey, ...PermissionKey[]])).max(500),
@@ -44,6 +51,8 @@ export interface RoleDto {
   description: string | null;
   isActive: boolean;
   isSystem: boolean;
+  /** Role có quyền `admin.access` (được vào trang quản trị) */
+  adminAccess: boolean;
   permissions: PermissionKey[];
   userCount: number;
   createdAt: string;

@@ -5,7 +5,7 @@ import {
   SettingOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
-import { AppShell, useAuth, type NavGroup } from '@base/ui';
+import { AppShell, NotificationBell, useAuth, type NavGroup } from '@base/ui';
 import { useTranslation } from 'react-i18next';
 import logo from '@/assets/logo.svg';
 import logoMini from '@/assets/logo-mini.svg';
@@ -45,6 +45,7 @@ export function AdminLayout() {
       logoCollapsed={logoMini}
       nav={nav}
       variant="admin"
+      headerExtra={<NotificationBell />}
     />
   );
 }

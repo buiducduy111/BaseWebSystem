@@ -1,4 +1,4 @@
-/** Bản dịch dùng chung (namespace common, auth, account) — tiếng Việt */
+/** Bản dịch dùng chung (namespace common, auth, account, notifications) — tiếng Việt */
 export const vi = {
   common: {
     appName: 'Base Web',
@@ -290,5 +290,19 @@ export const vi = {
       download: 'Tải file .txt',
       saved: 'Tôi đã lưu mã',
     },
+  },
+  notifications: {
+    title: 'Thông báo',
+    subtitle: 'Các thông báo gửi tới bạn và thông báo toàn hệ thống',
+    markAllRead: 'Đánh dấu tất cả đã đọc',
+    unreadOnly: 'Chỉ chưa đọc',
+    empty: 'Không có thông báo nào',
+    viewAll: 'Xem tất cả',
+    unreadCount: '{{count}} chưa đọc',
+    allRead: 'Đã đọc hết',
+    system: 'Hệ thống',
+    newTitle: 'Bạn có thông báo mới',
+    newDescription: '{{count}} thông báo chưa đọc',
+    markRead: 'Đánh dấu đã đọc',
   },
 };

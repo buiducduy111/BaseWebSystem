@@ -15,18 +15,4 @@ export const vi = {
     notificationsCard: 'Thông báo chưa đọc',
     open: 'Mở',
   },
-  notifications: {
-    title: 'Thông báo',
-    subtitle: 'Các thông báo gửi tới bạn và thông báo toàn hệ thống',
-    markAllRead: 'Đánh dấu tất cả đã đọc',
-    unreadOnly: 'Chỉ chưa đọc',
-    empty: 'Không có thông báo nào',
-    viewAll: 'Xem tất cả',
-    unreadCount: '{{count}} chưa đọc',
-    allRead: 'Đã đọc hết',
-    system: 'Hệ thống',
-    newTitle: 'Bạn có thông báo mới',
-    newDescription: '{{count}} thông báo chưa đọc',
-    markRead: 'Đánh dấu đã đọc',
-  },
 };

@@ -19,18 +19,4 @@ export const en: Catalog<typeof vi> = {
     notificationsCard: 'Unread notifications',
     open: 'Open',
   },
-  notifications: {
-    title: 'Notifications',
-    subtitle: 'Messages sent to you and system-wide announcements',
-    markAllRead: 'Mark all as read',
-    unreadOnly: 'Unread only',
-    empty: 'No notifications',
-    viewAll: 'View all',
-    unreadCount: '{{count}} unread',
-    allRead: 'All caught up',
-    system: 'System',
-    newTitle: 'You have new notifications',
-    newDescription: '{{count}} unread notifications',
-    markRead: 'Mark as read',
-  },
 };

@@ -1,13 +1,19 @@
 import { BellOutlined, CheckOutlined } from '@ant-design/icons';
 import type { NotificationDto } from '@base/shared';
-import { PageHeader } from '@base/ui';
 import { Button, Card, Empty, Pagination, Segmented, Spin } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
+import { PageHeader } from '../components/PageHeader';
 import { NotificationItem } from './NotificationItem';
-import { useMarkNotifications, useNotificationList, useUnreadCount } from './useNotifications';
+import {
+  openNotificationLink,
+  useMarkNotifications,
+  useNotificationList,
+  useUnreadCount,
+} from './useNotifications';
 
+/** Trang danh sách thông báo đầy đủ của tài khoản đang đăng nhập */
 export function NotificationsPage() {
   const { t } = useTranslation(['notifications', 'common']);
   const navigate = useNavigate();
@@ -20,10 +26,7 @@ export function NotificationsPage() {
 
   const handleClick = (n: NotificationDto) => {
     if (!n.read) markRead.mutate([n.id]);
-    if (n.link) {
-      if (/^https?:\/\//.test(n.link)) window.open(n.link, '_blank', 'noopener');
-      else navigate(n.link);
-    }
+    if (n.link) openNotificationLink(n.link, navigate);
   };
 
   return (

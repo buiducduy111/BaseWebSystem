@@ -8,7 +8,7 @@ import { vi } from './locales/vi';
 export type AppResources = Record<Locale, ResourceLanguage>;
 
 /**
- * Khởi tạo i18next cho 1 app. Bản dịch dùng chung (common, auth, account) được gộp
+ * Khởi tạo i18next cho 1 app. Bản dịch dùng chung (common, auth, account, notifications) được gộp
  * với bản dịch riêng của app. Ngôn ngữ được nhớ trong localStorage theo `storageKey`.
  */
 export function createI18n(appResources: AppResources, storageKey: string) {

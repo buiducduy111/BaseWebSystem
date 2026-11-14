@@ -1,4 +1,5 @@
 import {
+  CopyOutlined,
   DeleteOutlined,
   EditOutlined,
   KeyOutlined,
@@ -7,7 +8,6 @@ import {
 } from '@ant-design/icons';
 import { PERMISSION_KEYS, type ListRolesQuery, type RoleDto } from '@base/shared';
 import {
-  formatDateTime,
   getErrorMessage,
   PageHeader,
   useApi,
@@ -43,7 +43,7 @@ export function RolesPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [search, setSearch] = useState('');
-  const [form, setForm] = useState<{ open: boolean; role?: RoleDto }>({ open: false });
+  const [form, setForm] = useState<{ open: boolean; role?: RoleDto; cloneFrom?: RoleDto }>({ open: false });
   const [permRole, setPermRole] = useState<RoleDto | null>(null);
   const debounced = useDebouncedValue(search.trim(), 400);
 
@@ -73,6 +73,7 @@ export function RolesPage() {
         <Space size={6}>
           <Typography.Text strong>{r.name}</Typography.Text>
           {r.isSystem && <Tag>{t('system')}</Tag>}
+          {r.adminAccess && <Tag color="blue">{t('adminTag')}</Tag>}
         </Space>
       ),
     },
@@ -80,27 +81,30 @@ export function RolesPage() {
       key: 'description',
       title: t('common:description'),
       render: (_, r) => r.description || <Typography.Text type="secondary">—</Typography.Text>,
+      // Không đặt width để cột mô tả nhận phần chiều rộng dư, các cột số giữ gọn
       ellipsis: true,
-      width: 260,
     },
     {
       key: 'users',
       title: t('columns.users'),
       align: 'right',
-      width: 120,
+      width: 130,
+      minWidth: 130,
       render: (_, r) => r.userCount,
     },
     {
       key: 'permissions',
       title: t('columns.permissions'),
       align: 'right',
-      width: 110,
+      width: 130,
+      minWidth: 130,
       render: (_, r) => `${r.permissions.length}/${PERMISSION_KEYS.length}`,
     },
     {
       key: 'status',
       title: t('common:status'),
-      width: 150,
+      width: 130,
+      minWidth: 130,
       render: (_, r) => (
         <Badge
           status={r.isActive ? 'success' : 'error'}
@@ -109,22 +113,25 @@ export function RolesPage() {
       ),
     },
     {
-      key: 'createdAt',
-      title: t('common:createdAt'),
-      width: 170,
-      render: (_, r) => formatDateTime(r.createdAt),
-    },
-    {
       key: 'actions',
       title: t('common:actions'),
       fixed: 'right',
       align: 'right',
-      width: 140,
+      width: 180,
       render: (_, r) => (
         <Space size={4}>
           <Tooltip title={t('assignPermissions')}>
             <Button type="text" icon={<KeyOutlined />} onClick={() => setPermRole(r)} />
           </Tooltip>
+          {can('roles.create') && (
+            <Tooltip title={t('clone')}>
+              <Button
+                type="text"
+                icon={<CopyOutlined />}
+                onClick={() => setForm({ open: true, cloneFrom: r })}
+              />
+            </Tooltip>
+          )}
           {can('roles.update') && (
             <Tooltip title={t('common:edit')}>
               <Button type="text" icon={<EditOutlined />} onClick={() => setForm({ open: true, role: r })} />
@@ -185,7 +192,7 @@ export function RolesPage() {
           columns={columns}
           dataSource={roles.data?.items}
           loading={roles.isFetching}
-          scroll={{ x: 1190 }}
+          scroll={{ x: 1100 }}
           pagination={{
             current: page,
             pageSize,
@@ -202,6 +209,7 @@ export function RolesPage() {
       <RoleFormModal
         open={form.open}
         role={form.role}
+        cloneFrom={form.cloneFrom}
         onClose={() => setForm({ open: false })}
         onSaved={() => void invalidate()}
       />

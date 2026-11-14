@@ -26,7 +26,7 @@ Monorepo **pnpm workspace + Turborepo**, Node ≥ 22, TypeScript ~6 (`strict`, `
 | `src/packages/db` | `@base/db` | **Drizzle ORM** + PostgreSQL (`pg`), schema, migration, seed, `permissions-sync.ts`. Re-export các toán tử drizzle (`eq`, `and`, `inArray`…) và bảng. |
 | `src/packages/server-kit` | `@base/server-kit` | Lỗi có i18n (`badRequest`, `notFound`…), JWT, mã hoá, TOTP, mailer, rate limit, logger. |
 | `src/packages/api-client` | `@base/api-client` | SDK gọi API cho frontend (tự refresh token), `endpoints/*.ts`. |
-| `src/packages/ui` | `@base/ui` | Thành phần antd dùng chung: `AppProviders`, `AuthProvider`/`useAuth`, guard `RequireAuth`/`RequirePermission`/`Can`, `AppShell`, `PageHeader`/`SettingsSection`, trang tài khoản, i18n chung, `useApi`, `getErrorMessage`, `formatDateTime`… |
+| `src/packages/ui` | `@base/ui` | Thành phần antd dùng chung: `AppProviders`, `AuthProvider`/`useAuth`, guard `RequireAuth`/`RequirePermission`/`Can`, `AppShell`, `PageHeader`/`SettingsSection`, trang tài khoản, chuông/trang thông báo (`NotificationBell`, `NotificationsPage`), i18n chung, `useApi`, `getErrorMessage`, `formatDateTime`… |
 | `src/packages/config` | `@base/config` | tsconfig dùng chung (`base`, `node`, `react`). |
 
 Hạ tầng: PostgreSQL chạy local (`localhost:5432`, `postgres/postgres`, **không Docker**), Redis tuỳ chọn cho rate limit. Production luôn đứng sau **Cloudflare** (IP client lấy qua `getClientIp`, vị trí từ header `cf-*`). Biến môi trường server chỉ ở `src/backends/api/.env`, đọc bằng `getEnv()` (zod).
