@@ -1,6 +1,13 @@
 import { DownloadOutlined, DownOutlined, SettingOutlined, UploadOutlined } from '@ant-design/icons';
 import type { SettingGroupDto, SettingHintDto } from '@base/shared';
-import { downloadFile, getErrorMessage, PageHeader, SettingsSection, useApi, useAuth } from '@base/ui';
+import {
+  downloadFile,
+  PageHeader,
+  SettingsSection,
+  useApi,
+  useAuth,
+  useNotifyError,
+} from '@base/ui';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { App, Button, Card, Dropdown, Skeleton } from 'antd';
 import dayjs from 'dayjs';
@@ -19,6 +26,7 @@ export function SettingsPage() {
   const queryClient = useQueryClient();
   const { can } = useAuth();
   const { message } = App.useApp();
+  const notifyError = useNotifyError();
   const [importOpen, setImportOpen] = useState(false);
   const canEdit = can('settings.update');
 
@@ -43,7 +51,7 @@ export function SettingsPage() {
       );
       void message.success(t('exported', { count: file.settings.length }));
     } catch (err) {
-      void message.error(getErrorMessage(err, t));
+      notifyError(err);
     }
   }
 

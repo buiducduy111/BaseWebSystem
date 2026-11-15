@@ -29,7 +29,10 @@ function LocalizedConfig({ children, theme }: { children: ReactNode; theme: Them
   }, [locale]);
   return (
     <ConfigProvider locale={locale === 'vi' ? viVN : enUS} theme={theme}>
-      <AntdApp>{children}</AntdApp>
+      {/* Chặn trên số toast hiển thị cùng lúc, phòng khi có chỗ chưa gộp theo key */}
+      <AntdApp message={{ maxCount: 3 }} notification={{ maxCount: 3 }}>
+        {children}
+      </AntdApp>
     </ConfigProvider>
   );
 }
@@ -42,7 +45,13 @@ export interface AppProvidersProps {
   theme?: ThemeConfig;
 }
 
-export function AppProviders({ api, i18n, children, requireAdmin, theme = baseTheme }: AppProvidersProps) {
+export function AppProviders({
+  api,
+  i18n,
+  children,
+  requireAdmin,
+  theme = baseTheme,
+}: AppProvidersProps) {
   const [queryClient] = useState(
     () =>
       new QueryClient({

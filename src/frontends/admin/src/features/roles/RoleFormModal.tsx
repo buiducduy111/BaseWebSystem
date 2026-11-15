@@ -1,5 +1,5 @@
 import { PERMISSION_KEYS, type CreateRoleInput, type RoleDto } from '@base/shared';
-import { getErrorMessage, useApi, useAuth } from '@base/ui';
+import { useApi, useAuth, useNotifyError } from '@base/ui';
 import { useQuery } from '@tanstack/react-query';
 import { App, Form, Input, Modal, Segmented, Select, Switch } from 'antd';
 import { useEffect, useState } from 'react';
@@ -36,6 +36,7 @@ export function RoleFormModal({
   const { t } = useTranslation(['roles', 'common']);
   const api = useApi();
   const { message } = App.useApp();
+  const notifyError = useNotifyError();
   const [form] = Form.useForm<Values>();
   const { can } = useAuth();
   // Cờ vào trang admin = quyền admin.access → cần quyền phân quyền mới được đổi (backend cũng chặn)
@@ -101,7 +102,7 @@ export function RoleFormModal({
       onSaved();
       onClose();
     } catch (err) {
-      void message.error(getErrorMessage(err, t));
+      notifyError(err);
     } finally {
       setSaving(false);
     }

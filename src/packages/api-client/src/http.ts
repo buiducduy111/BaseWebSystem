@@ -1,5 +1,11 @@
 import { APP_HEADER, type ApiMeta, type ApiResponse, type AppName } from '@base/shared';
 
+/**
+ * Mã lỗi khi không nói chuyện được với backend: mất mạng / CORS (NETWORK_ERROR),
+ * hoặc proxy/gateway trả 5xx không kèm body JSON của API (SERVICE_UNAVAILABLE).
+ */
+export const CONNECTIVITY_ERROR_CODES = ['NETWORK_ERROR', 'SERVICE_UNAVAILABLE'] as const;
+
 export class ApiClientError extends Error {
   constructor(
     public readonly status: number,
@@ -11,6 +17,11 @@ export class ApiClientError extends Error {
   ) {
     super(message);
     this.name = 'ApiClientError';
+  }
+
+  /** true khi lỗi do không kết nối được backend, không phải lỗi nghiệp vụ */
+  get isConnectivity(): boolean {
+    return (CONNECTIVITY_ERROR_CODES as readonly string[]).includes(this.code);
   }
 }
 
@@ -127,6 +138,11 @@ export function createHttpClient(options: HttpClientOptions) {
     }
     if (!res.ok || !json || json.error) {
       const error = json?.error;
+      // Backend chết thì proxy (Vite, nginx, Cloudflare) vẫn trả 5xx nhưng body là HTML/rỗng
+      // → coi là mất kết nối để UI gộp thông báo, thay vì hiện thô "HTTP 502"
+      if (!error && res.status >= 500) {
+        throw new ApiClientError(res.status, 'SERVICE_UNAVAILABLE', `HTTP ${res.status}`);
+      }
       throw new ApiClientError(
         res.status,
         error?.code ?? 'HTTP_ERROR',

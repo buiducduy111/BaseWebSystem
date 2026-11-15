@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../auth/context';
 import { useApi } from '../providers/ApiContext';
+import { useNotifyError } from '../hooks';
 import { confirmPasswordRules, errorKey, getErrorMessage, passwordRules } from '../utils';
 
 interface Values {
@@ -16,6 +17,7 @@ export function ChangePasswordForm() {
   const { t } = useTranslation();
   const api = useApi();
   const { message } = App.useApp();
+  const notifyError = useNotifyError();
   const [form] = Form.useForm<Values>();
   const [saving, setSaving] = useState(false);
   const { user, setUser } = useAuth();
@@ -24,7 +26,10 @@ export function ChangePasswordForm() {
   async function submit({ currentPassword, newPassword }: Values) {
     setSaving(true);
     try {
-      await api.me.changePassword({ currentPassword: hasPassword ? currentPassword : undefined, newPassword });
+      await api.me.changePassword({
+        currentPassword: hasPassword ? currentPassword : undefined,
+        newPassword,
+      });
       form.resetFields();
       void message.success(t('account:passwordChanged'));
       // Tài khoản Google vừa đặt mật khẩu lần đầu → cập nhật để hiện ô mật khẩu hiện tại
@@ -35,7 +40,7 @@ export function ChangePasswordForm() {
       if (errorKey(err) === 'account.currentPasswordIncorrect') {
         form.setFields([{ name: 'currentPassword', errors: [text] }]);
       } else {
-        void message.error(text);
+        notifyError(err);
       }
     } finally {
       setSaving(false);

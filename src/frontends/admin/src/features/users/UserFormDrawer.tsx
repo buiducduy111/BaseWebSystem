@@ -1,6 +1,6 @@
 import type { CreateUserInput, RoleDto, UpdateUserInput, UserDto } from '@base/shared';
 import { PASSWORD_MIN_LENGTH } from '@base/shared';
-import { emailRules, getErrorMessage, passwordRules, useApi, useAuth } from '@base/ui';
+import { emailRules, passwordRules, useApi, useAuth, useNotifyError } from '@base/ui';
 import { App, Button, Drawer, Form, Input, Select, Space, Switch, Typography } from 'antd';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -29,6 +29,7 @@ export function UserFormDrawer({ open, user, roles, onClose, onSaved }: UserForm
   const api = useApi();
   const { user: me } = useAuth();
   const { message } = App.useApp();
+  const notifyError = useNotifyError();
   const [form] = Form.useForm<Values>();
   const [saving, setSaving] = useState(false);
   const isEdit = Boolean(user);
@@ -71,7 +72,7 @@ export function UserFormDrawer({ open, user, roles, onClose, onSaved }: UserForm
       onSaved();
       onClose();
     } catch (err) {
-      void message.error(getErrorMessage(err, t));
+      notifyError(err);
     } finally {
       setSaving(false);
     }

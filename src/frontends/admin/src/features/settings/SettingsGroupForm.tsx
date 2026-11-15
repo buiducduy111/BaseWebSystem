@@ -1,6 +1,6 @@
 import { DeleteOutlined } from '@ant-design/icons';
 import type { SettingGroupDto, SettingItemDto } from '@base/shared';
-import { getErrorMessage, useApi } from '@base/ui';
+import { useApi, useNotifyError } from '@base/ui';
 import { App, Button, Form, Input, InputNumber, Select, Switch, Tag, Typography } from 'antd';
 import { useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -55,6 +55,7 @@ export function SettingsGroupForm({
   const { t } = useTranslation(['settings', 'common']);
   const api = useApi();
   const { message, modal } = App.useApp();
+  const notifyError = useNotifyError();
   const [form] = Form.useForm<Record<string, FormValue>>();
   const [saving, setSaving] = useState(false);
 
@@ -83,7 +84,7 @@ export function SettingsGroupForm({
       onSaved(await api.settings.update(changed));
       void message.success(t('saved'));
     } catch (err) {
-      void message.error(getErrorMessage(err, t));
+      notifyError(err);
     } finally {
       setSaving(false);
     }
@@ -99,7 +100,7 @@ export function SettingsGroupForm({
           onSaved(await api.settings.update({ [item.name]: '' }));
           void message.success(t('saved'));
         } catch (err) {
-          void message.error(getErrorMessage(err, t));
+          notifyError(err);
         }
       },
     });
@@ -119,7 +120,9 @@ export function SettingsGroupForm({
       case 'boolean':
         return <Switch disabled={readOnly} />;
       case 'number':
-        return <InputNumber disabled={readOnly} placeholder={placeholder} style={{ width: '100%' }} />;
+        return (
+          <InputNumber disabled={readOnly} placeholder={placeholder} style={{ width: '100%' }} />
+        );
       case 'select':
       case 'multiselect':
         return (
@@ -140,7 +143,13 @@ export function SettingsGroupForm({
   }
 
   return (
-    <Form form={form} layout="vertical" requiredMark={false} onFinish={save} className="settings-form">
+    <Form
+      form={form}
+      layout="vertical"
+      requiredMark={false}
+      onFinish={save}
+      className="settings-form"
+    >
       {hint}
       {items.map((item) => (
         <Form.Item

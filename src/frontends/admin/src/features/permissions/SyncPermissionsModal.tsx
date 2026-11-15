@@ -1,7 +1,19 @@
 import type { PermissionDefinition } from '@base/shared';
-import { getErrorMessage, useApi } from '@base/ui';
+import { useApi, useNotifyError } from '@base/ui';
 import { useQuery } from '@tanstack/react-query';
-import { Alert, App, Button, Checkbox, Col, Modal, Row, Spin, Statistic, Table, Typography } from 'antd';
+import {
+  Alert,
+  App,
+  Button,
+  Checkbox,
+  Col,
+  Modal,
+  Row,
+  Spin,
+  Statistic,
+  Table,
+  Typography,
+} from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { MethodTag } from '@/components/MethodTag';
@@ -19,6 +31,7 @@ export function SyncPermissionsModal({
   const { t } = useTranslation(['permissions', 'common']);
   const api = useApi();
   const { message, modal } = App.useApp();
+  const notifyError = useNotifyError();
   const [removeStale, setRemoveStale] = useState(false);
   const [applying, setApplying] = useState(false);
 
@@ -41,7 +54,7 @@ export function SyncPermissionsModal({
       onSynced();
       onClose();
     } catch (err) {
-      void message.error(getErrorMessage(err, t));
+      notifyError(err);
     } finally {
       setApplying(false);
     }
@@ -114,7 +127,11 @@ export function SyncPermissionsModal({
                 dataSource={data.toAdd}
                 className="b-mb-16"
                 columns={[
-                  { title: t('columns.key'), dataIndex: 'key', render: (v: string) => <code>{v}</code> },
+                  {
+                    title: t('columns.key'),
+                    dataIndex: 'key',
+                    render: (v: string) => <code>{v}</code>,
+                  },
                   { title: t('columns.module'), dataIndex: 'module' },
                   {
                     title: t('columns.apiPath'),
@@ -144,10 +161,26 @@ export function SyncPermissionsModal({
                 dataSource={data.changes}
                 className="b-mb-16"
                 columns={[
-                  { title: t('columns.key'), dataIndex: 'key', render: (v: string) => <code>{v}</code> },
-                  { title: t('field'), dataIndex: 'field', render: (v: string) => t(`fields.${v}`) },
-                  { title: t('current'), dataIndex: 'from', render: (v: string | null) => <code>{v ?? '—'}</code> },
-                  { title: t('expected'), dataIndex: 'to', render: (v: string | null) => <code>{v ?? '—'}</code> },
+                  {
+                    title: t('columns.key'),
+                    dataIndex: 'key',
+                    render: (v: string) => <code>{v}</code>,
+                  },
+                  {
+                    title: t('field'),
+                    dataIndex: 'field',
+                    render: (v: string) => t(`fields.${v}`),
+                  },
+                  {
+                    title: t('current'),
+                    dataIndex: 'from',
+                    render: (v: string | null) => <code>{v ?? '—'}</code>,
+                  },
+                  {
+                    title: t('expected'),
+                    dataIndex: 'to',
+                    render: (v: string | null) => <code>{v ?? '—'}</code>,
+                  },
                 ]}
               />
             </>
@@ -163,11 +196,16 @@ export function SyncPermissionsModal({
                 dataSource={data.toRemove}
                 className="b-mb-16"
                 columns={[
-                  { title: t('columns.key'), dataIndex: 'key', render: (v: string) => <code>{v}</code> },
+                  {
+                    title: t('columns.key'),
+                    dataIndex: 'key',
+                    render: (v: string) => <code>{v}</code>,
+                  },
                   {
                     title: t('columns.roles'),
                     dataIndex: 'roles',
-                    render: (roles: string[]) => (roles.length ? t('assignedTo', { roles: roles.join(', ') }) : '—'),
+                    render: (roles: string[]) =>
+                      roles.length ? t('assignedTo', { roles: roles.join(', ') }) : '—',
                   },
                 ]}
               />

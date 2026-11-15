@@ -42,6 +42,7 @@ import {
   suggestPasskeyName,
 } from '../auth/webauthn';
 import { useApi } from '../providers/ApiContext';
+import { useNotifyError } from '../hooks';
 import { formatDateTime, getErrorMessage } from '../utils';
 import { enabledMethodsOf, ReauthCancelledError, useReauth } from './useReauth';
 
@@ -89,6 +90,7 @@ export function TwoFactorSettings() {
   const queryClient = useQueryClient();
   const { user, setUser } = useAuth();
   const { message } = App.useApp();
+  const notifyError = useNotifyError();
 
   const status = useQuery({ queryKey: STATUS_KEY, queryFn: () => api.me.twoFactor.status() });
   const { withReauth, modal: reauthModal } = useReauth(status.data);
@@ -124,7 +126,7 @@ export function TwoFactorSettings() {
       await refresh();
       return result;
     } catch (err) {
-      if (!(err instanceof ReauthCancelledError)) void message.error(getErrorMessage(err, t));
+      if (!(err instanceof ReauthCancelledError)) notifyError(err);
       return undefined;
     } finally {
       setBusy(null);

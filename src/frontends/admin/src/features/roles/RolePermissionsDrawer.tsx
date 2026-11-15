@@ -6,7 +6,7 @@ import {
   type PermissionModule,
   type RoleDto,
 } from '@base/shared';
-import { getErrorMessage, useApi } from '@base/ui';
+import { useApi, useNotifyError } from '@base/ui';
 import { App, Button, Checkbox, Collapse, Drawer, Space, Typography } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -29,6 +29,7 @@ export function RolePermissionsDrawer({
   const { t } = useTranslation(['roles', 'permissions', 'common']);
   const api = useApi();
   const { message } = App.useApp();
+  const notifyError = useNotifyError();
   const [selected, setSelected] = useState<Set<PermissionKey>>(() => new Set(role?.permissions));
   const [saving, setSaving] = useState(false);
   // Mở drawer cho role khác: nạp lại danh sách quyền đang chọn (điều chỉnh state ngay khi render)
@@ -59,7 +60,7 @@ export function RolePermissionsDrawer({
       onSaved();
       onClose();
     } catch (err) {
-      void message.error(getErrorMessage(err, t));
+      notifyError(err);
     } finally {
       setSaving(false);
     }

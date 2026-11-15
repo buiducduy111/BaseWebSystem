@@ -4,7 +4,7 @@ import {
   type PermissionDto,
   type UpdatePermissionInput,
 } from '@base/shared';
-import { getErrorMessage, useApi } from '@base/ui';
+import { useApi, useNotifyError } from '@base/ui';
 import { App, AutoComplete, Form, Input, Modal, Select, Typography } from 'antd';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -32,6 +32,7 @@ export function PermissionFormModal({
   const { t } = useTranslation(['permissions', 'common']);
   const api = useApi();
   const { message } = App.useApp();
+  const notifyError = useNotifyError();
   const [form] = Form.useForm<Values>();
   const [saving, setSaving] = useState(false);
   const type = Form.useWatch('type', form);
@@ -63,7 +64,7 @@ export function PermissionFormModal({
       onSaved();
       onClose();
     } catch (err) {
-      void message.error(getErrorMessage(err, t));
+      notifyError(err);
     } finally {
       setSaving(false);
     }
@@ -84,10 +85,16 @@ export function PermissionFormModal({
           <Input value={permission?.key} disabled className="admin-mono" />
         </Form.Item>
         <Form.Item label={t('columns.name')}>
-          <Typography.Text>{permission && t(`items.${permission.key}`, { defaultValue: permission.key })}</Typography.Text>
+          <Typography.Text>
+            {permission && t(`items.${permission.key}`, { defaultValue: permission.key })}
+          </Typography.Text>
         </Form.Item>
         <div className="b-form-grid">
-          <Form.Item name="module" label={t('fields.module')} rules={[{ required: true, whitespace: true, max: 50 }]}>
+          <Form.Item
+            name="module"
+            label={t('fields.module')}
+            rules={[{ required: true, whitespace: true, max: 50 }]}
+          >
             <AutoComplete
               options={modules.map((m) => ({ value: m }))}
               filterOption={(input, option) => String(option?.value).includes(input)}

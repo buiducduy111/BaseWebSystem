@@ -15,12 +15,12 @@ import {
 import type { ListUsersQuery, UserDto } from '@base/shared';
 import {
   formatDateTime,
-  getErrorMessage,
   PageHeader,
   useApi,
   useAuth,
   useDebouncedValue,
   UserCell,
+  useNotifyError,
 } from '@base/ui';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -52,6 +52,7 @@ export function UsersPage() {
   const queryClient = useQueryClient();
   const { user: me, can } = useAuth();
   const { message, modal } = App.useApp();
+  const notifyError = useNotifyError();
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -97,7 +98,7 @@ export function UsersPage() {
   });
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['users'] });
-  const onError = (err: unknown) => void message.error(getErrorMessage(err, t));
+  const onError = notifyError;
 
   const toggleActive = useMutation({
     mutationFn: (u: UserDto) => api.users.update(u.id, { isActive: !u.isActive }),

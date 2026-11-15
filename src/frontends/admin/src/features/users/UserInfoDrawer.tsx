@@ -10,11 +10,11 @@ import {
 import { LOCALES, type UpdateUserInput, type UserDto } from '@base/shared';
 import {
   formatDateTime,
-  getErrorMessage,
   LoginHistoryTable,
   useApi,
   useAuth,
   UserCell,
+  useNotifyError,
 } from '@base/ui';
 import { Alert, App, Button, Descriptions, Drawer, Popconfirm, Tag, Typography } from 'antd';
 import { useState, type ReactNode } from 'react';
@@ -62,6 +62,7 @@ export function UserInfoDrawer({
   const api = useApi();
   const { user: me } = useAuth();
   const { message, modal } = App.useApp();
+  const notifyError = useNotifyError();
   // Đổi email là thao tác nhạy cảm (ảnh hưởng đăng nhập) → chỉ super admin
   const canEditEmail = canEdit && Boolean(me?.isSuperAdmin);
 
@@ -91,7 +92,7 @@ export function UserInfoDrawer({
       void message.success(t('messages.updated'));
       onUpdated();
     } catch (err) {
-      void message.error(getErrorMessage(err, t));
+      notifyError(err);
       throw err;
     }
   };
@@ -114,7 +115,7 @@ export function UserInfoDrawer({
       setNewPassword(password);
       setPasswordCopied(false);
     } catch (err) {
-      void message.error(getErrorMessage(err, t));
+      notifyError(err);
     } finally {
       setResetting(false);
     }
@@ -175,7 +176,9 @@ export function UserInfoDrawer({
                 </Tag>
                 <Tag
                   color={current.emailVerified ? 'success' : 'warning'}
-                  icon={current.emailVerified ? <CheckCircleOutlined /> : <ExclamationCircleOutlined />}
+                  icon={
+                    current.emailVerified ? <CheckCircleOutlined /> : <ExclamationCircleOutlined />
+                  }
                 >
                   {current.emailVerified ? t('emailVerified') : t('emailUnverified')}
                 </Tag>
@@ -285,12 +288,16 @@ export function UserInfoDrawer({
               </Text>
             </Descriptions.Item>
             <Descriptions.Item label={t('info.password')}>
-              {current.hasPassword ? t('info.passwordSet') : (
+              {current.hasPassword ? (
+                t('info.passwordSet')
+              ) : (
                 <Text type="secondary">{t('info.passwordNotSet')}</Text>
               )}
             </Descriptions.Item>
             <Descriptions.Item label={t('columns.twoFactor')}>
-              {current.twoFactorEnabled ? t('info.twoFactorOn') : (
+              {current.twoFactorEnabled ? (
+                t('info.twoFactorOn')
+              ) : (
                 <Text type="secondary">{t('info.twoFactorOff')}</Text>
               )}
             </Descriptions.Item>

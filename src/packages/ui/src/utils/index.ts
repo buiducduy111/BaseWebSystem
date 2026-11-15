@@ -7,10 +7,15 @@ import type { TFunction } from 'i18next';
 /** Thông báo lỗi để hiển thị (server đã dịch sẵn theo ngôn ngữ hiện tại) */
 export function getErrorMessage(error: unknown, t: TFunction): string {
   if (error instanceof ApiClientError) {
-    return error.status === 0 ? t('common:networkError') : error.message;
+    return error.isConnectivity ? t('common:networkError') : error.message;
   }
   if (error instanceof Error && error.message) return error.message;
   return t('common:error');
+}
+
+/** true khi lỗi do không kết nối được backend (mất mạng, server down, gateway 5xx) */
+export function isConnectivityError(error: unknown): boolean {
+  return error instanceof ApiClientError && error.isConnectivity;
 }
 
 export function errorKey(error: unknown): string | undefined {

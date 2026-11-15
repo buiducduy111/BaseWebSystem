@@ -12,7 +12,8 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../auth/context';
 import { UserAvatar } from '../components/UserAvatar';
 import { useApi } from '../providers/ApiContext';
-import { displayName, formatDateTime, getErrorMessage } from '../utils';
+import { useNotifyError } from '../hooks';
+import { displayName, formatDateTime } from '../utils';
 import { EmailVerificationForm } from './EmailVerificationForm';
 
 /** Thông tin cá nhân: Email (chỉ đọc), Họ, Tên, Avatar */
@@ -21,6 +22,7 @@ export function ProfileInfoForm() {
   const api = useApi();
   const { user, setUser } = useAuth();
   const { message } = App.useApp();
+  const notifyError = useNotifyError();
   const [form] = Form.useForm<UpdateProfileInput>();
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -38,7 +40,7 @@ export function ProfileInfoForm() {
       setUser(await api.me.updateProfile(values));
       void message.success(t('account:profileUpdated'));
     } catch (err) {
-      void message.error(getErrorMessage(err, t));
+      notifyError(err);
     } finally {
       setSaving(false);
     }
@@ -50,7 +52,7 @@ export function ProfileInfoForm() {
       setUser(await api.me.uploadAvatar(file, name));
       void message.success(t('account:avatar.updated'));
     } catch (err) {
-      void message.error(getErrorMessage(err, t));
+      notifyError(err);
     } finally {
       setUploading(false);
     }
@@ -62,7 +64,7 @@ export function ProfileInfoForm() {
       setUser(await api.me.removeAvatar());
       void message.success(t('account:avatar.removed'));
     } catch (err) {
-      void message.error(getErrorMessage(err, t));
+      notifyError(err);
     } finally {
       setUploading(false);
     }
@@ -132,7 +134,10 @@ export function ProfileInfoForm() {
               suffix={
                 user.emailVerified && (
                   <Tooltip title={t('account:emailVerification.verified')}>
-                    <CheckCircleFilled className="b-verified-icon" aria-label={t('account:emailVerification.verified')} />
+                    <CheckCircleFilled
+                      className="b-verified-icon"
+                      aria-label={t('account:emailVerification.verified')}
+                    />
                   </Tooltip>
                 )
               }
@@ -148,14 +153,18 @@ export function ProfileInfoForm() {
           <Form.Item
             name="lastName"
             label={t('auth:lastName')}
-            rules={[{ required: true, whitespace: true, message: t('auth:validation.lastNameRequired') }]}
+            rules={[
+              { required: true, whitespace: true, message: t('auth:validation.lastNameRequired') },
+            ]}
           >
             <Input maxLength={100} autoComplete="family-name" />
           </Form.Item>
           <Form.Item
             name="firstName"
             label={t('auth:firstName')}
-            rules={[{ required: true, whitespace: true, message: t('auth:validation.firstNameRequired') }]}
+            rules={[
+              { required: true, whitespace: true, message: t('auth:validation.firstNameRequired') },
+            ]}
           >
             <Input maxLength={100} autoComplete="given-name" />
           </Form.Item>

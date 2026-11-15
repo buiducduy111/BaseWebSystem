@@ -7,13 +7,7 @@ import {
   SafetyCertificateOutlined,
 } from '@ant-design/icons';
 import { PERMISSION_KEYS, type ListRolesQuery, type RoleDto } from '@base/shared';
-import {
-  getErrorMessage,
-  PageHeader,
-  useApi,
-  useAuth,
-  useDebouncedValue,
-} from '@base/ui';
+import { PageHeader, useApi, useAuth, useDebouncedValue, useNotifyError } from '@base/ui';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   App,
@@ -39,11 +33,14 @@ export function RolesPage() {
   const queryClient = useQueryClient();
   const { can } = useAuth();
   const { message, modal } = App.useApp();
+  const notifyError = useNotifyError();
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [search, setSearch] = useState('');
-  const [form, setForm] = useState<{ open: boolean; role?: RoleDto; cloneFrom?: RoleDto }>({ open: false });
+  const [form, setForm] = useState<{ open: boolean; role?: RoleDto; cloneFrom?: RoleDto }>({
+    open: false,
+  });
   const [permRole, setPermRole] = useState<RoleDto | null>(null);
   const debounced = useDebouncedValue(search.trim(), 400);
 
@@ -61,7 +58,7 @@ export function RolesPage() {
       void message.success(t('messages.deleted'));
       void invalidate();
     },
-    onError: (err) => void message.error(getErrorMessage(err, t)),
+    onError: notifyError,
   });
 
   const columns: TableProps<RoleDto>['columns'] = [
@@ -134,7 +131,11 @@ export function RolesPage() {
           )}
           {can('roles.update') && (
             <Tooltip title={t('common:edit')}>
-              <Button type="text" icon={<EditOutlined />} onClick={() => setForm({ open: true, role: r })} />
+              <Button
+                type="text"
+                icon={<EditOutlined />}
+                onClick={() => setForm({ open: true, role: r })}
+              />
             </Tooltip>
           )}
           {can('roles.delete') && !r.isSystem && (
