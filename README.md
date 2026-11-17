@@ -81,6 +81,8 @@ pnpm dev          # chạy api + user + admin
 
 Danh sách đầy đủ, chú thích và giá trị mặc định nằm trong `.env.example` cùng thư mục. Biến đặt sẵn trong môi trường (systemd, shell) luôn được ưu tiên hơn giá trị trong file.
 
+Biến môi trường chỉ chứa cấu hình hạ tầng (database, cổng, secret, URL app, thư mục upload, Redis). Các cấu hình vận hành — SMTP/Sendify, Google OAuth, Cloudflare Turnstile, tên site, cho phép đăng ký, bắt buộc 2FA… — **không nằm trong `.env`** mà lưu ở bảng `settings` của database, sửa trực tiếp ở trang Admin (xem [docs/settings.md](docs/settings.md)).
+
 Cấu hình ở trang **Admin → Cài đặt**:
 
 - **Email**: mã xác minh email và link đặt lại mật khẩu gửi qua **Sendify** (`sendify_*`, theo template) nếu đã cấu hình, nếu không thì qua SMTP (`smtp_*`). Chưa cấu hình gì thì nội dung email (kèm mã) được ghi ra log của API.
